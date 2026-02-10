@@ -24,10 +24,14 @@ import './ENSShowcase.css';
 
 export const ENSShowcase: React.FC = () => {
   const { address } = useAccount();
-  const { data: ensName } = useEnsName({
+  const { data: ensNameRaw } = useEnsName({
     address: address as `0x${string}`,
     chainId: 1,
   });
+
+  // Normalize ENS name to `string | undefined` (wagmi may return `null`)
+  const ensName: string | undefined = typeof ensNameRaw === 'string' ? ensNameRaw : undefined;
+
   const { data: ensAvatar } = useEnsAvatar({
     name: ensName,
     chainId: 1,
