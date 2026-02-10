@@ -24,7 +24,6 @@
 - **Move Language**: Type-safe smart contracts for payment roles
 - **On-Chain Transparency**: All funds visible on blockchain
 - **No Custody Risk**: Smart contract holds funds, not us
-- **Package ID**: `0xbac14b29ce0da91b31780afabdcc989346a5227350fab6d0c15c37b6801d0c38`
 
 **Use Case**: DeFi payments, cryptocurrency payroll, developer compensation
 
@@ -32,7 +31,6 @@
 - **Native USDC**: Pay with real stablecoin (not test tokens)
 - **EVM Compatible**: Use MetaMask, same experience as Ethereum
 - **Institutional Ready**: USDC is familiar to traditional businesses
-- **Contract**: `0xd91489f8De36E01E81a7a787DF3D8E1Fa78f7138`
 
 **Use Case**: Business payroll, contractor payments, subscriptions
 
@@ -96,110 +94,6 @@ ENS ADDS VALUE:
 - [`ENSShowcase.tsx`](src/pages/ENSShowcase/ENSShowcase.tsx) - Live demo page
 
 ---
-
-## 🚀 Quick Start
-
-### 1. Install Dependencies
-```bash
-npm install
-```
-
-### 2. Run Development Server
-```bash
-npm run dev
-```
-
-### 3. Connect Wallets
-- **Sui**: Install [Sui Wallet Extension](https://chrome.google.com/webstore/detail/sui-wallet)
-- **Arc**: Use MetaMask, add Arc Testnet:
-  - RPC: `https://testnet.node.arc.network`
-  - Chain ID: `93094681`
-  - Symbol: `ETH`
-
-### 4. Try the Flow
-1. **Homepage**: See how all three technologies work together
-2. **Create Role**: Choose Sui or Arc, create payment role
-3. **ENS Demo**: Visit `/ens`, try `testnet-work.eth`
-4. **Execute**: Find ready payments, click "Execute"
-
----
-
-## 📝 What You Need to Do Manually
-
-### 1. **Set ENS Payment Preferences** (Optional but Recommended)
-
-If you have an ENS domain, add payment preferences for better demo:
-
-**Visit**: [`app.ens.domains/your-name.eth`](https://app.ens.domains) → **Records** tab
-
-Add these text records:
-```
-Key: payment.preferredToken      Value: USDC
-Key: payment.minAmount           Value: 100
-Key: payment.autoExecute         Value: true
-Key: payment.timezone            Value: America/New_York
-```
-
-Save and wait 5-10 minutes for propagation. Your payment preferences will now auto-load in the app!
-
-### 2. **Deploy to Production** (For HackMoney Submission)
-
-```bash
-# Build production bundle
-npm run build
-
-# Deploy to Vercel
-vercel deploy
-
-# Or Netlify
-netlify deploy
-```
-
-### 3. **Fund Test Wallets**
-
-- **Sui Testnet**: Get SUI from [Sui Faucet](https://discord.gg/sui)
-- **Arc Testnet**: Request ETH in Arc Discord
-
----
-
-## 🎥 Demo Script (For Video)
-
-1. **Homepage** (20s): "This is a trustless auto-payment platform using Sui, Arc, and ENS..."
-2. **How It Works** (30s): "Client funds smart contract, recipients see funds on-chain, payments auto-execute..."
-3. **ENS Demo** (30s): "Instead of addresses, use alice.eth. Her payment preferences auto-load from ENS..."
-4. **Create Role** (45s): "Choose Sui or Arc, add recipient with ENS, schedule payments..."
-5. **Execute Payment** (30s): "Anyone can execute ready payments - fully permissionless..."
-6. **Blockchain Verification** (20s): "All funds visible on Sui Explorer / Arc Explorer..."
-
-**Total**: ~3 minutes
-
----
-
-## 🏆 HackMoney Prize Alignment
-
-### ENS Prize Track
-- ✅ ENS → Address resolution across all payment flows
-- ✅ Payment preference schema (payment.preferredToken, payment.minAmount)
-- ✅ DeFi identity layer innovation
-- ✅ Live demo at `/ens`
-- 📄 Documentation: [`ENS-COMPLETE-GUIDE.md`](ENS-COMPLETE-GUIDE.md)
-
-### Arc Prize Track
-- ✅ Arc testnet smart contract deployed
-- ✅ USDC-native payments
-- ✅ EVM compatibility (MetaMask support)
-- ✅ Production business use case
-- 📄 Documentation: [`ARC-INTEGRATION-GUIDE.md`](ARC-INTEGRATION-GUIDE.md)
-
-### Sui Foundation
-- ✅ Move smart contracts with role-based payment model
-- ✅ Permissionless execution architecture
-- ✅ On-chain transparency and trustless design
-- ✅ Testnet deployment with working demo
-- 📄 Original project, enhanced with multi-chain
-
----
-
 ## 📂 Project Structure
 
 ```
@@ -228,16 +122,6 @@ d:\ethereum/
 ├── ENS-COMPLETE-GUIDE.md          # ENS integration docs
 └── ARC-INTEGRATION-GUIDE.md       # Arc integration docs
 ```
-
----
-
-## 🔗 Live Links
-
-- **Sui Package**: [`0xbac14b29...1d0c38`](https://suiexplorer.com/object/0xbac14b29ce0da91b31780afabdcc989346a5227350fab6d0c15c37b6801d0c38?network=testnet)
-- **Arc Contract**: [`0xd91489f8...8f7138`](https://testnet.arcscan.io/address/0xd91489f8De36E01E81a7a787DF3D8E1Fa78f7138)
-- **ENS Demo Domain**: [`testnet-work.eth`](https://app.ens.domains/testnet-work.eth)
-
----
 
 ## 🎓 Key Innovation
 
