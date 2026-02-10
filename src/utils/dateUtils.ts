@@ -18,15 +18,17 @@ export function getRelativeTime(timestamp: number): string {
   }
 }
 
-export function getRoleStatus(startTime: number, expiryTime: number): 'upcoming' | 'active' | 'expired' {
+export type RoleStatusKey = 'upcoming' | 'active' | 'expired';
+
+export function getRoleStatus(startTime: number, expiryTime: number): { key: RoleStatusKey; label: string; color: string } {
   const now = Date.now();
-  
+
   if (now < startTime) {
-    return 'upcoming';
+    return { key: 'upcoming', label: 'Upcoming', color: '#F59E0B' };
   } else if (now >= startTime && now <= expiryTime) {
-    return 'active';
+    return { key: 'active', label: 'Active', color: '#10B981' };
   } else {
-    return 'expired';
+    return { key: 'expired', label: 'Expired', color: '#EF4444' };
   }
 }
 

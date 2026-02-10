@@ -482,7 +482,7 @@ export const CreateRole: React.FC = () => {
       }
 
       setTxResult({
-        digest: result?.digest || result?.hash || '',
+        digest: result?.digest || (result as any)?.hash || '',
         roleId: (result as any)?.roleId || null
       });
       
@@ -490,7 +490,7 @@ export const CreateRole: React.FC = () => {
         type: 'success',
         title: 'Role Created Successfully!',
         message: `Your role "${roleName}" has been created and recorded on-chain with ${payments.length} scheduled payment${payments.length > 1 ? 's' : ''}.`,
-        txDigest: result?.digest || result?.hash || '',
+        txDigest: result?.digest || (result as any)?.hash || '',
         duration: 10000,
       });
     } catch (error) {
