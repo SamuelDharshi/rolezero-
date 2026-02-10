@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RoleZero - Auto-Payment System</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #f1f5f9;
+        overflow-x: hidden;
+      }
+
+      .slide {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 80px;
+        page-break-after: always;
+        position: relative;
+      }
+
+      .slide-number {
+        position: absolute;
+        bottom: 30px;
+        right: 50px;
+        font-size: 18px;
+        opacity: 0.5;
+      }
+
+      /* Slide 1 - Title */
+      .slide-title {
+        background: linear-gradient(
+          135deg,
+          #0f172a 0%,
+          #1e3a8a 50%,
+          #6366f1 100%
+        );
+        text-align: center;
+      }
+
+      .slide-title h1 {
+        font-size: 96px;
+        font-weight: 900;
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 30px;
+        animation: slideUp 1s ease;
+      }
+
+      .slide-title .tagline {
+        font-size: 42px;
+        margin-bottom: 20px;
+        color: #10b981;
+        font-weight: 600;
+      }
+
+      .slide-title .subtitle {
+        font-size: 28px;
+        opacity: 0.8;
+        margin-bottom: 60px;
+      }
+
+      /* Slide 2 - Problem */
+      .slide-problem {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        align-items: flex-start;
+        text-align: left;
+      }
+
+      h2 {
+        font-size: 64px;
+        margin-bottom: 50px;
+        color: #3b82f6;
+        font-weight: 800;
+      }
+
+      h3 {
+        font-size: 48px;
+        margin-bottom: 40px;
+        color: #60a5fa;
+      }
+
+      .problem-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        width: 100%;
+      }
+
+      .problem-card {
+        background: rgba(239, 68, 68, 0.1);
+        border: 2px solid rgba(239, 68, 68, 0.3);
+        border-radius: 24px;
+        padding: 40px;
+        transition: transform 0.3s;
+      }
+
+      .problem-card:hover {
+        transform: translateY(-10px);
+        border-color: rgba(239, 68, 68, 0.6);
+      }
+
+      .problem-card h4 {
+        font-size: 32px;
+        margin-bottom: 20px;
+        color: #ef4444;
+      }
+
+      .problem-card ul {
+        list-style: none;
+        font-size: 20px;
+        line-height: 1.8;
+      }
+
+      .problem-card li::before {
+        content: "❌ ";
+      }
+
+      /* Slide 3 - Solution */
+      .slide-solution {
+        background: linear-gradient(
+          135deg,
+          #059669 0%,
+          #10b981 50%,
+          #0f172a 100%
+        );
+      }
+
+      .solution-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        width: 100%;
+        margin-top: 40px;
+      }
+
+      .feature-card {
+        background: rgba(16, 185, 129, 0.1);
+        border: 2px solid rgba(16, 185, 129, 0.3);
+        border-radius: 20px;
+        padding: 30px;
+        text-align: left;
+      }
+
+      .feature-card h4 {
+        font-size: 28px;
+        color: #10b981;
+        margin-bottom: 15px;
+      }
+
+      .feature-card p {
+        font-size: 18px;
+        opacity: 0.9;
+        line-height: 1.6;
+      }
+
+      /* Slide 4 - Auto-Payment Flow */
+      .slide-flow {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      }
+
+      .flow-steps {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 60px;
+      }
+
+      .flow-step {
+        flex: 1;
+        text-align: center;
+        padding: 30px;
+        position: relative;
+      }
+
+      .flow-step::after {
+        content: "→";
+        position: absolute;
+        right: -30px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 48px;
+        color: #3b82f6;
+      }
+
+      .flow-step:last-child::after {
+        display: none;
+      }
+
+      .flow-icon {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 60px;
+        margin: 0 auto 20px;
+        box-shadow: 0 10px 40px rgba(59, 130, 246, 0.4);
+      }
+
+      .flow-step h4 {
+        font-size: 28px;
+        margin-bottom: 15px;
+        color: #3b82f6;
+      }
+
+      .flow-step p {
+        font-size: 16px;
+        opacity: 0.8;
+      }
+
+      /* Code block */
+      .code-block {
+        background: #1e293b;
+        border: 2px solid #3b82f6;
+        border-radius: 16px;
+        padding: 30px;
+        margin-top: 40px;
+        text-align: left;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 18px;
+        line-height: 1.8;
+        color: #10b981;
+        width: 100%;
+      }
+
+      /* Stats */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+        width: 100%;
+        margin-top: 50px;
+      }
+
+      .stat-card {
+        background: linear-gradient(
+          135deg,
+          rgba(99, 102, 241, 0.2) 0%,
+          rgba(139, 92, 246, 0.2) 100%
+        );
+        border: 2px solid rgba(99, 102, 241, 0.5);
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 72px;
+        font-weight: 900;
+        color: #3b82f6;
+        margin-bottom: 10px;
+      }
+
+      .stat-label {
+        font-size: 24px;
+        opacity: 0.9;
+      }
+
+      /* CTA */
+      .cta-button {
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        color: white;
+        padding: 30px 60px;
+        border-radius: 16px;
+        font-size: 32px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        margin-top: 50px;
+        box-shadow: 0 10px 40px rgba(59, 130, 246, 0.4);
+        transition: transform 0.3s;
+      }
+
+      .cta-button:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 50px rgba(59, 130, 246, 0.6);
+      }
+
+      /* Animations */
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .pulse {
+        animation: pulse 2s infinite;
+      }
+
+      /* Print styles for PDF export */
+      @media print {
+        .slide {
+          page-break-after: always;
+        }
+      }
+
+      /* List styles */
+      ul {
+        list-style: none;
+        font-size: 22px;
+        line-height: 2;
+      }
+
+      ul li::before {
+        content: "✅ ";
+        margin-right: 10px;
+      }
+
+      .comparison-table {
+        width: 100%;
+        margin-top: 40px;
+        border-collapse: collapse;
+      }
+
+      .comparison-table th,
+      .comparison-table td {
+        padding: 20px;
+        text-align: left;
+        border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+      }
+
+      .comparison-table th {
+        background: rgba(59, 130, 246, 0.2);
+        font-size: 24px;
+        color: #3b82f6;
+      }
+
+      .comparison-table td {
+        font-size: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Slide 1: Title -->
+    <div class="slide slide-title">
+      <h1>RoleZero</h1>
+      <div class="tagline">⚡ Set it. Schedule it. Forget it. ⚡</div>
+      <div class="subtitle">
+        Fully Autonomous Role-Based Payment System on Sui Blockchain
+      </div>
+      <p style="font-size: 24px; opacity: 0.7; margin-top: 40px">
+        Decentralized Payroll • Automated Payments • Zero Trust
+      </p>
+      <div class="slide-number">1</div>
+    </div>
+
+    <!-- Slide 2: Problem -->
+    <div class="slide slide-problem">
+      <h2>💼 Traditional Payroll is Broken</h2>
+      <div class="problem-grid">
+        <div class="problem-card">
+          <h4>Manual Processing</h4>
+          <ul>
+            <li>Hours of manual work</li>
+            <li>Human errors</li>
+            <li>Time-consuming reconciliation</li>
+          </ul>
+        </div>
+        <div class="problem-card">
+          <h4>Centralized Control</h4>
+          <ul>
+            <li>Single point of failure</li>
+            <li>Trust required</li>
+            <li>High costs ($50-200/cycle)</li>
+          </ul>
+        </div>
+        <div class="problem-card">
+          <h4>No Automation</h4>
+          <ul>
+            <li>Manual approval every time</li>
+            <li>Weekend/holiday delays</li>
+            <li>No real-time execution</li>
+          </ul>
+        </div>
+        <div class="problem-card">
+          <h4>Lack of Transparency</h4>
+          <ul>
+            <li>Hidden fees</li>
+            <li>No audit trail</li>
+            <li>Limited visibility</li>
+          </ul>
+        </div>
+      </div>
+      <p
+        style="
+          margin-top: 40px;
+          font-size: 24px;
+          text-align: center;
+          color: #ef4444;
+        "
+      >
+        📊 40% of companies report payroll errors annually • Average cost: $120
+        per payroll run
+      </p>
+      <div class="slide-number">2</div>
+    </div>
+
+    <!-- Slide 3: Solution -->
+    <div class="slide slide-solution">
+      <h2>⚡ Our Solution: RoleZero</h2>
+      <h3 style="text-align: center; margin-bottom: 30px">
+        "Schedule payments once, execute automatically forever"
+      </h3>
+      <div class="solution-grid">
+        <div class="feature-card">
+          <h4>✅ 100% Automated</h4>
+          <p>
+            30-second monitoring system auto-executes when scheduled time
+            arrives. No manual intervention required!
+          </p>
+        </div>
+        <div class="feature-card">
+          <h4>✅ Fully Decentralized</h4>
+          <p>
+            Permissionless execution - anyone can trigger. No central servers or
+            bots. Trustless smart contract logic.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h4>✅ On-Chain Transparency</h4>
+          <p>
+            Every payment recorded on Sui blockchain. Real-time tracking.
+            Immutable audit trail.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h4>✅ Cross-Chain Ready</h4>
+          <p>
+            Integrated with LI.FI for multi-chain payments. Support for 20+
+            blockchains. ENS resolution included.
+          </p>
+        </div>
+      </div>
+      <div class="slide-number">3</div>
+    </div>
+
+    <!-- Slide 4: Auto-Payment Flow -->
+    <div class="slide slide-flow">
+      <h2>🤖 The 30-Second Auto-Executor</h2>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-icon">⏱️</div>
+          <h4>1. MONITOR</h4>
+          <p>System checks all scheduled payments every 30 seconds</p>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">✓</div>
+          <h4>2. VALIDATE</h4>
+          <p>Smart contract verifies time arrived & sufficient balance</p>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">🚀</div>
+          <h4>3. EXECUTE</h4>
+          <p>Automatically trigger payment & transfer funds</p>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">✅</div>
+          <h4>4. CONFIRM</h4>
+          <p>Update dashboard & show transaction hash</p>
+        </div>
+      </div>
+      <div class="code-block">
+        setInterval(() => {<br />
+        &nbsp;&nbsp;checkScheduledPayments();<br />
+        &nbsp;&nbsp;if (paymentReady && sufficientBalance) {<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;executeAutomatically(); // No approval
+        needed!<br />
+        &nbsp;&nbsp;}<br />
+        }, 30000); // Check every 30 seconds
+      </div>
+      <div class="slide-number">4</div>
+    </div>
+
+    <!-- Slide 5: Key Features -->
+    <div
+      class="slide"
+      style="
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        align-items: flex-start;
+        text-align: left;
+      "
+    >
+      <h2 style="margin-bottom: 40px">⚡ Key Features</h2>
+      <div
+        style="
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 40px;
+          width: 100%;
+        "
+      >
+        <div>
+          <h3 style="font-size: 32px; color: #10b981; margin-bottom: 20px">
+            Permissionless Execution
+          </h3>
+          <ul style="font-size: 20px">
+            <li>Anyone can execute ready payments</li>
+            <li>No special privileges required</li>
+            <li>Only pay gas fees (~0.001 SUI)</li>
+            <li>Fully decentralized</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size: 32px; color: #10b981; margin-bottom: 20px">
+            Real-Time Monitoring
+          </h3>
+          <ul style="font-size: 20px">
+            <li>Live transaction feed</li>
+            <li>Auto-refresh every 30 seconds</li>
+            <li>Payment status indicators</li>
+            <li>Balance tracking</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size: 32px; color: #10b981; margin-bottom: 20px">
+            Cross-Chain Support
+          </h3>
+          <ul style="font-size: 20px">
+            <li>Integrated with LI.FI</li>
+            <li>Support 20+ blockchains</li>
+            <li>Ethereum, Polygon, Arbitrum</li>
+            <li>Bridge funds automatically</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size: 32px; color: #10b981; margin-bottom: 20px">
+            Smart Contract Security
+          </h3>
+          <ul style="font-size: 20px">
+            <li>Time-locked payments</li>
+            <li>Balance validation</li>
+            <li>Prevent double-execution</li>
+            <li>Leftover fund recovery</li>
+          </ul>
+        </div>
+      </div>
+      <div class="slide-number">5</div>
+    </div>
+
+    <!-- Slide 6: Performance Metrics -->
+    <div
+      class="slide"
+      style="
+        background: linear-gradient(
+          135deg,
+          #6366f1 0%,
+          #8b5cf6 50%,
+          #0f172a 100%
+        );
+      "
+    >
+      <h2>📊 Performance Metrics</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">&lt;3s</div>
+          <div class="stat-label">Payment Execution</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">30s</div>
+          <div class="stat-label">Monitor Interval</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">$0.0001</div>
+          <div class="stat-label">Gas Fee</div>
+        </div>
+      </div>
+      <div
+        style="
+          margin-top: 60px;
+          font-size: 28px;
+          text-align: center;
+          background: rgba(16, 185, 129, 0.2);
+          padding: 40px;
+          border-radius: 20px;
+          border: 2px solid #10b981;
+        "
+      >
+        <div
+          style="
+            font-size: 48px;
+            font-weight: 900;
+            color: #10b981;
+            margin-bottom: 20px;
+          "
+        >
+          99.9% CHEAPER
+        </div>
+        <div>Traditional Payroll: $120/month × 12 = $1,440/year</div>
+        <div>
+          RoleZero: $0.0001 × 12 =
+          <span style="color: #10b981; font-weight: 900">$0.0012/year</span>
+        </div>
+      </div>
+      <div class="slide-number">6</div>
+    </div>
+
+    <!-- Slide 7: Use Cases -->
+    <div
+      class="slide"
+      style="
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        align-items: flex-start;
+        text-align: left;
+      "
+    >
+      <h2>💡 Use Cases</h2>
+      <div
+        style="
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 40px;
+          width: 100%;
+          margin-top: 40px;
+        "
+      >
+        <div
+          style="
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+          "
+        >
+          <h3 style="font-size: 36px; margin-bottom: 20px">
+            💼 Payroll Automation
+          </h3>
+          <ul style="font-size: 20px">
+            <li>Monthly salary payments</li>
+            <li>Bi-weekly contractor payments</li>
+            <li>Hourly wage distributions</li>
+          </ul>
+        </div>
+        <div
+          style="
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+          "
+        >
+          <h3 style="font-size: 36px; margin-bottom: 20px">🔄 Subscriptions</h3>
+          <ul style="font-size: 20px">
+            <li>Recurring membership fees</li>
+            <li>SaaS license renewals</li>
+            <li>Content creator payouts</li>
+          </ul>
+        </div>
+        <div
+          style="
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+          "
+        >
+          <h3 style="font-size: 36px; margin-bottom: 20px">🏛️ DAO Treasury</h3>
+          <ul style="font-size: 20px">
+            <li>Grant distributions</li>
+            <li>Core team salaries</li>
+            <li>Bounty payments</li>
+          </ul>
+        </div>
+        <div
+          style="
+            background: rgba(251, 191, 36, 0.1);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+          "
+        >
+          <h3 style="font-size: 36px; margin-bottom: 20px">
+            🏠 Rental Payments
+          </h3>
+          <ul style="font-size: 20px">
+            <li>Monthly rent collection</li>
+            <li>Lease agreements</li>
+            <li>Property management</li>
+          </ul>
+        </div>
+      </div>
+      <div class="slide-number">7</div>
+    </div>
+
+    <!-- Slide 8: Technology Stack -->
+    <div
+      class="slide"
+      style="
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        align-items: flex-start;
+      "
+    >
+      <h2>🛠️ Technology Stack</h2>
+      <div style="width: 100%; margin-top: 50px">
+        <table class="comparison-table">
+          <tr>
+            <th>Layer</th>
+            <th>Technology</th>
+            <th>Purpose</th>
+          </tr>
+          <tr>
+            <td>🔗 Blockchain</td>
+            <td>Sui (Move Language)</td>
+            <td>Ultra-fast, low-cost transactions</td>
+          </tr>
+          <tr>
+            <td>⚛️ Frontend</td>
+            <td>React 18 + TypeScript + Vite</td>
+            <td>Modern, type-safe UI</td>
+          </tr>
+          <tr>
+            <td>🔌 Web3</td>
+            <td>@mysten/dapp-kit + Wagmi</td>
+            <td>Wallet connection & transactions</td>
+          </tr>
+          <tr>
+            <td>🌉 Bridge</td>
+            <td>LI.FI SDK</td>
+            <td>Cross-chain payments</td>
+          </tr>
+          <tr>
+            <td>🎨 UI/UX</td>
+            <td>CSS + Framer Motion</td>
+            <td>Premium glassmorphism design</td>
+          </tr>
+          <tr>
+            <td>🔄 State</td>
+            <td>TanStack Query</td>
+            <td>Data fetching & caching</td>
+          </tr>
+        </table>
+      </div>
+      <div class="slide-number">8</div>
+    </div>
+
+    <!-- Slide 9: Competitive Advantage -->
+    <div
+      class="slide"
+      style="
+        background: linear-gradient(135deg, #6366f1 0%, #0f172a 100%);
+        align-items: flex-start;
+      "
+    >
+      <h2>🏆 Why RoleZero Wins</h2>
+      <div style="width: 100%; margin-top: 40px">
+        <div
+          style="
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid #10b981;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+          "
+        >
+          <h3 style="color: #10b981; font-size: 36px; margin-bottom: 20px">
+            vs. Traditional Payroll (ADP, Gusto)
+          </h3>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+              font-size: 22px;
+            "
+          >
+            <div>❌ Manual processing</div>
+            <div style="color: #10b981">✅ Fully automated</div>
+            <div>❌ $120+ per payroll</div>
+            <div style="color: #10b981">✅ $0.0001 per payment</div>
+            <div>❌ 2-3 day delays</div>
+            <div style="color: #10b981">✅ Instant execution</div>
+            <div>❌ Business hours only</div>
+            <div style="color: #10b981">✅ 24/7 operation</div>
+          </div>
+        </div>
+        <div
+          style="
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid #8b5cf6;
+            border-radius: 20px;
+            padding: 40px;
+          "
+        >
+          <h3 style="color: #8b5cf6; font-size: 36px; margin-bottom: 20px">
+            vs. Other Crypto Payroll
+          </h3>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+              font-size: 22px;
+            "
+          >
+            <div>❌ Manual approval needed</div>
+            <div style="color: #10b981">✅ Auto-executes</div>
+            <div>❌ Ethereum gas ($20+)</div>
+            <div style="color: #10b981">✅ Sui gas ($0.0001)</div>
+            <div>❌ Single chain</div>
+            <div style="color: #10b981">✅ Cross-chain ready</div>
+            <div>❌ Centralized servers</div>
+            <div style="color: #10b981">✅ Fully decentralized</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-number">9</div>
+    </div>
+
+    <!-- Slide 10: CTA -->
+    <div class="slide slide-title">
+      <h2 style="font-size: 72px; margin-bottom: 40px">
+        🎯 Join the Payment Revolution
+      </h2>
+      <div
+        style="
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 40px;
+          margin-top: 60px;
+          width: 100%;
+        "
+      >
+        <div
+          style="
+            text-align: center;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #3b82f6;
+          "
+        >
+          <div style="font-size: 48px; margin-bottom: 20px">🚀</div>
+          <h3 style="color: #3b82f6; font-size: 32px; margin-bottom: 20px">
+            Try Demo
+          </h3>
+          <p style="font-size: 18px">Visit rolezero.xyz</p>
+        </div>
+        <div
+          style="
+            text-align: center;
+            background: rgba(139, 92, 246, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #8b5cf6;
+          "
+        >
+          <div style="font-size: 48px; margin-bottom: 20px">💻</div>
+          <h3 style="color: #8b5cf6; font-size: 32px; margin-bottom: 20px">
+            Build with Us
+          </h3>
+          <p style="font-size: 18px">Fork on GitHub</p>
+        </div>
+        <div
+          style="
+            text-align: center;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #10b981;
+          "
+        >
+          <div style="font-size: 48px; margin-bottom: 20px">💰</div>
+          <h3 style="color: #10b981; font-size: 32px; margin-bottom: 20px">
+            Partner
+          </h3>
+          <p style="font-size: 18px">invest@rolezero.xyz</p>
+        </div>
+      </div>
+      <button class="cta-button">Try RoleZero Today! 🚀</button>
+      <p style="font-size: 24px; margin-top: 40px; opacity: 0.7">
+        🎁 First 100 users get lifetime free tier + governance tokens
+      </p>
+      <div class="slide-number">10</div>
+    </div>
+
+    <script>
+      // Add smooth scrolling between slides
+      let currentSlide = 0;
+      const slides = document.querySelectorAll(".slide");
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " ") {
+          if (currentSlide < slides.length - 1) {
+            currentSlide++;
+            slides[currentSlide].scrollIntoView({ behavior: "smooth" });
+          }
+        } else if (e.key === "ArrowLeft") {
+          if (currentSlide > 0) {
+            currentSlide--;
+            slides[currentSlide].scrollIntoView({ behavior: "smooth" });
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
