@@ -246,5 +246,4 @@ d:\ethereum/
 ---
 
 Built for HackMoney 2026 🚀  
-Multi-Chain • Trustless • Auto-Executed#   r o l e z e r o -  
- 
+Multi-Chain • Trustless • Auto-Executed
