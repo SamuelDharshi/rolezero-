@@ -162,218 +162,226 @@ export const RoleCreation: React.FC = () => {
     return new Date(future.getTime() - future.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
   };
 
-  if (!currentAccount) {
-    return (
-      <div className="role-creation-page">
-        <div className="ens-bg" />
-        <div className="container flex-center" style={{ minHeight: '80vh' }}>
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="card text-center" style={{ maxWidth: '600px', padding: '60px' }}>
-            <div className="icon-circle bg-surface flex-center mb-24" style={{ margin: '0 auto', width: '80px', height: '80px' }}>
-              <Wallet size={40} className="text-secondary" />
-            </div>
-            <h2>Authentication Required</h2>
-            <p className="text-secondary mb-32">Initialize your SUI wallet node to architect a payment protocol.</p>
-            <button className="btn btn-primary">Connect Wallet</button>
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="role-creation-page">
       <div className="ens-bg" />
       
       <div className="container" style={{ paddingTop: '60px', paddingBottom: '100px' }}>
-        <header className="creation-header flex-between mb-40">
-          <div>
-            <div className="badge">Protocol Lab</div>
-            <h1>Architect Protocol</h1>
-            <p className="text-secondary">Construct autonomous distribution manifests with atomic precision.</p>
-          </div>
-          <div className="stat-card card flex-center gap-12">
-            <span className="text-xs uppercase font-bold letter-1 text-muted">Active Nodes</span>
-            <span className="font-bold text-xl">{payments.length}</span>
-          </div>
-        </header>
-
-        <form onSubmit={handleCreateRole} className="creation-grid">
-          <div className="grid-main">
-            {/* General Parameters */}
-            <section className="creation-section card mb-32">
-              <div className="section-header flex-center gap-12 mb-32">
-                <div className="section-icon flex-center"><Layers size={20} /></div>
-                <h3 className="m-0">Genesis Parameters</h3>
+        {!currentAccount ? (
+          <div className="flex-center" style={{ minHeight: '60vh' }}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card flex-center gap-32"
+              style={{ padding: '40px 50px', maxWidth: '900px', width: '100%' }}
+            >
+              <div className="icon-circle bg-surface flex-center" style={{ width: '80px', height: '80px', borderRadius: '20px', flexShrink: 0 }}>
+                <Wallet size={36} className="text-secondary" />
               </div>
-
-              <div className="form-grid">
-                <div className="form-group full">
-                  <label>Designation Identifier</label>
-                  <div className="input-with-icon">
-                    <Fingerprint size={18} className="text-muted" />
-                    <input
-                      type="text"
-                      value={roleName}
-                      onChange={(e) => setRoleName(e.target.value)}
-                      placeholder="e.g. MARKETING_OPS_ALPHA"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Temporal Genesis</label>
-                  <div className="input-with-icon">
-                    <Clock size={18} className="text-muted" />
-                    <input
-                      type="datetime-local"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Depletion Boundary (Expiry)</label>
-                  <div className="input-with-icon">
-                    <Activity size={18} className="text-muted" />
-                    <input
-                      type="datetime-local"
-                      value={expiryDate}
-                      onChange={(e) => setExpiryDate(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Dispatch Pipeline */}
-            <section className="creation-section card">
-              <div className="section-header flex-between mb-32">
-                <div className="flex-center gap-12">
-                  <div className="section-icon flex-center bg-success-dim"><ArrowUpRight size={20} className="text-success" /></div>
-                  <h3 className="m-0">Dispatch Pipeline</h3>
-                </div>
-                <button type="button" onClick={addPayment} className="btn-add-node flex-center gap-8">
-                  <Plus size={16} /> Add Node
-                </button>
-              </div>
-
-              <div className="nodes-list flex-column gap-20">
-                <AnimatePresence initial={false}>
-                  {payments.map((payment, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                      animate={{ opacity: 1, height: 'auto', marginTop: 0 }}
-                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                      className="node-item card-dim"
-                    >
-                      <div className="node-header flex-between mb-16">
-                        <span className="text-xs font-bold uppercase letter-2 text-primary">Node #{index + 1}</span>
-                        {payments.length > 1 && (
-                          <button type="button" onClick={() => removePayment(index)} className="btn-remove-node">
-                            <Trash2 size={14} />
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="form-grid">
-                        <div className="form-group full">
-                          <label>Endpoint Address</label>
-                          <input
-                            type="text"
-                            value={payment.recipient}
-                            onChange={(e) => updatePayment(index, 'recipient', e.target.value)}
-                            placeholder="0x..."
-                            required
-                            className="mono"
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label>Magnitude (SUI)</label>
-                          <input
-                            type="number"
-                            step="0.001"
-                            value={payment.amount}
-                            onChange={(e) => updatePayment(index, 'amount', e.target.value)}
-                            placeholder="0.00"
-                            required
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label>Epoch Trigger</label>
-                          <input
-                            type="datetime-local"
-                            value={payment.scheduledDate}
-                            onChange={(e) => updatePayment(index, 'scheduledDate', e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </section>
-          </div>
-
-          <aside className="grid-sidebar">
-            <div className="sticky-sidebar">
-              <section className="sidebar-section card mb-24">
-                <div className="section-header flex-center gap-12 mb-24">
-                  <div className="section-icon flex-center"><Settings size={20} /></div>
-                  <h3 className="m-0">Operations</h3>
-                </div>
-
-                <div className="form-group mb-24">
-                  <label className="text-xs uppercase font-bold letter-1 text-muted mb-8 block">Residual Reserve</label>
-                  <input
-                    type="text"
-                    value={leftoverRecipient}
-                    onChange={(e) => setLeftoverRecipient(e.target.value)}
-                    placeholder="Auto: Architect Node"
-                    className="mono text-sm"
-                  />
-                </div>
-
-                <div className="form-group mb-32">
-                  <label className="text-xs uppercase font-bold letter-1 text-muted mb-8 block">Kernel Fee (MIST)</label>
-                  <input
-                    type="number"
-                    value={developerFee}
-                    onChange={(e) => setDeveloperFee(e.target.value)}
-                    className="mono text-sm"
-                  />
-                  <div className="mt-8 text-xs font-bold text-primary">
-                    Total: {(Number(developerFee) / 1000000000).toFixed(4)} SUI
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="btn btn-primary btn-full py-16"
-                >
-                  {loading ? <Loader2 className="spin" size={20} /> : <Zap size={20} />}
-                  <span>Initialize Protocol</span>
-                </button>
-              </section>
-
-              <div className="card bg-surface-dim">
-                <div className="flex-center gap-12 mb-12">
-                  <ShieldCheck size={18} className="text-primary" />
-                  <h4 className="m-0 text-sm">Security Layer</h4>
-                </div>
-                <p className="text-xs text-muted leading-relaxed m-0">
-                  Transactions are immutable once inscribed on the SUI ledger. Verify all temporal triggers before initialization.
+              <div className="flex-1">
+                <h2 className="m-0 text-xl font-bold">Authentication Required</h2>
+                <p className="text-secondary m-0 mt-8 leading-relaxed">
+                  Initialize your SUI wallet node to architect a payment protocol manifold and secure temporal dispatches.
                 </p>
               </div>
-            </div>
-          </aside>
-        </form>
+              <button className="btn btn-primary px-32 py-16 font-bold whitespace-nowrap" style={{ minWidth: '180px' }}>
+                Connect Wallet
+              </button>
+            </motion.div>
+          </div>
+        ) : (
+          <>
+            <header className="creation-header flex-between mb-40">
+              <div>
+                <div className="badge">Protocol Lab</div>
+                <h1>Architect Protocol</h1>
+                <p className="text-secondary">Construct autonomous distribution manifests with atomic precision.</p>
+              </div>
+              <div className="stat-card card flex-center gap-12">
+                <span className="text-xs uppercase font-bold letter-1 text-muted">Active Nodes</span>
+                <span className="font-bold text-xl">{payments.length}</span>
+              </div>
+            </header>
+
+            <form onSubmit={handleCreateRole} className="creation-grid">
+              <div className="grid-main">
+                {/* General Parameters */}
+                <section className="creation-section card mb-32">
+                  <div className="section-header flex-center gap-12 mb-32">
+                    <div className="section-icon flex-center"><Layers size={20} /></div>
+                    <h3 className="m-0">Genesis Parameters</h3>
+                  </div>
+
+                  <div className="form-grid">
+                    <div className="form-group full">
+                      <label>Designation Identifier</label>
+                      <div className="input-with-icon">
+                        <Fingerprint size={18} className="text-muted" />
+                        <input
+                          type="text"
+                          value={roleName}
+                          onChange={(e) => setRoleName(e.target.value)}
+                          placeholder="e.g. MARKETING_OPS_ALPHA"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Temporal Genesis</label>
+                      <div className="input-with-icon">
+                        <Clock size={18} className="text-muted" />
+                        <input
+                          type="datetime-local"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Depletion Boundary (Expiry)</label>
+                      <div className="input-with-icon">
+                        <Activity size={18} className="text-muted" />
+                        <input
+                          type="datetime-local"
+                          value={expiryDate}
+                          onChange={(e) => setExpiryDate(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Dispatch Pipeline */}
+                <section className="creation-section card">
+                  <div className="section-header flex-between mb-32">
+                    <div className="flex-center gap-12">
+                      <div className="section-icon flex-center bg-success-dim"><ArrowUpRight size={20} className="text-success" /></div>
+                      <h3 className="m-0">Dispatch Pipeline</h3>
+                    </div>
+                    <button type="button" onClick={addPayment} className="btn-add-node flex-center gap-8">
+                      <Plus size={16} /> Add Node
+                    </button>
+                  </div>
+
+                  <div className="nodes-list flex-column gap-20">
+                    <AnimatePresence initial={false}>
+                      {payments.map((payment, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                          animate={{ opacity: 1, height: 'auto', marginTop: 0 }}
+                          exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                          className="node-item card-dim"
+                        >
+                          <div className="node-header flex-between mb-16">
+                            <span className="text-xs font-bold uppercase letter-2 text-primary">Node #{index + 1}</span>
+                            {payments.length > 1 && (
+                              <button type="button" onClick={() => removePayment(index)} className="btn-remove-node">
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="form-grid">
+                            <div className="form-group full">
+                              <label>Endpoint Address</label>
+                              <input
+                                type="text"
+                                value={payment.recipient}
+                                onChange={(e) => updatePayment(index, 'recipient', e.target.value)}
+                                placeholder="0x..."
+                                required
+                                className="mono"
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label>Magnitude (SUI)</label>
+                              <input
+                                type="number"
+                                step="0.001"
+                                value={payment.amount}
+                                onChange={(e) => updatePayment(index, 'amount', e.target.value)}
+                                placeholder="0.00"
+                                required
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label>Epoch Trigger</label>
+                              <input
+                                type="datetime-local"
+                                value={payment.scheduledDate}
+                                onChange={(e) => updatePayment(index, 'scheduledDate', e.target.value)}
+                                required
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                </section>
+              </div>
+
+              <aside className="grid-sidebar">
+                <div className="sticky-sidebar">
+                  <section className="sidebar-section card mb-24">
+                    <div className="section-header flex-center gap-12 mb-24">
+                      <div className="section-icon flex-center"><Settings size={20} /></div>
+                      <h3 className="m-0">Operations</h3>
+                    </div>
+
+                    <div className="form-group mb-24">
+                      <label className="text-xs uppercase font-bold letter-1 text-muted mb-8 block">Residual Reserve</label>
+                      <input
+                        type="text"
+                        value={leftoverRecipient}
+                        onChange={(e) => setLeftoverRecipient(e.target.value)}
+                        placeholder="Auto: Architect Node"
+                        className="mono text-sm"
+                      />
+                    </div>
+
+                    <div className="form-group mb-32">
+                      <label className="text-xs uppercase font-bold letter-1 text-muted mb-8 block">Kernel Fee (MIST)</label>
+                      <input
+                        type="number"
+                        value={developerFee}
+                        onChange={(e) => setDeveloperFee(e.target.value)}
+                        className="mono text-sm"
+                      />
+                      <div className="mt-8 text-xs font-bold text-primary">
+                        Total: {(Number(developerFee) / 1000000000).toFixed(4)} SUI
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="btn btn-primary btn-full py-16"
+                    >
+                      {loading ? <Loader2 className="spin" size={20} /> : <Zap size={20} />}
+                      <span>Initialize Protocol</span>
+                    </button>
+                  </section>
+
+                  <div className="card bg-surface-dim">
+                    <div className="flex-center gap-12 mb-12">
+                      <ShieldCheck size={18} className="text-primary" />
+                      <h4 className="m-0 text-sm">Security Layer</h4>
+                    </div>
+                    <p className="text-xs text-muted leading-relaxed m-0">
+                      Transactions are immutable once inscribed on the SUI ledger. Verify all temporal triggers before initialization.
+                    </p>
+                  </div>
+                </div>
+              </aside>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );
