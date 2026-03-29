@@ -1,58 +1,124 @@
-/* ==================== ROLE DASHBOARD CYBER-LUXE STYLES ==================== */
-
-.role-creation-page {
-  background: var(--bg-main);
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
+.creation-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 32px;
+  align-items: flex-start;
 }
 
-/* ==================== FORM GROUPS ==================== */
-
-.form-group input {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+.creation-section {
+  padding: 32px;
 }
 
-.form-group input:focus {
-  border-color: var(--sui-blue) !important;
-  box-shadow: 0 0 50px rgba(6, 182, 212, 0.15) !important;
-  background: rgba(6, 182, 212, 0.05) !important;
+.section-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--bg-surface);
+  border-radius: 12px;
+  color: var(--sui-blue);
 }
 
-/* ==================== PAYMENT NODES ==================== */
-
-.payment-node {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+.section-icon.bg-success-dim {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
 }
 
-.payment-node:hover {
-  transform: translateX(10px);
-  border-color: rgba(34, 197, 94, 0.3) !important;
-  background: rgba(34, 197, 94, 0.05) !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 
-/* ==================== RESPONSIVENESS ==================== */
-
-@media (max-width: 1700px) {
-  .dashboard-main-grid { grid-template-columns: 1fr; }
+.form-group.full {
+  grid-column: span 2;
 }
 
-@media (max-width: 1200px) {
-  .page-header { flex-direction: column; align-items: flex-start; gap: 8rem; }
-  .header-icon { width: 120px !important; height: 120px !important; }
-  .page-header h1 { font-size: 7rem !important; }
-  .node-inputs { grid-template-columns: 1fr; gap: 4rem; }
+.input-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  transition: all 0.2s ease;
 }
 
-@media (max-width: 900px) {
-  .inputs-grid { grid-template-columns: 1fr; }
-  .form-group input { font-size: 1.5rem !important; }
+.input-with-icon:focus-within {
+  border-color: var(--sui-blue);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.15);
+}
+
+.input-with-icon input {
+  background: transparent;
+  border: none;
+  padding: 12px 0;
+  box-shadow: none;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.btn-add-node {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add-node:hover {
+  border-color: var(--sui-blue);
+  background: var(--bg-input);
+}
+
+.node-item {
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+}
+
+.btn-remove-node {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-remove-node:hover {
+  color: var(--error);
+}
+
+.sticky-sidebar {
+  position: sticky;
+  top: 100px;
+}
+
+.sidebar-section {
+  padding: 24px;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .creation-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 600px) {
-  .page-header h1 { font-size: 5rem !important; }
-  .header-stats { width: 100%; }
-  .stat-pill { width: 100%; }
-  .payment-node { padding: 4rem !important; }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-group.full {
+    grid-column: span 1;
+  }
 }
