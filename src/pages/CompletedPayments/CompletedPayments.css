@@ -1,131 +1,88 @@
-/* ==================== COMPLETED PAYMENTS CYBER-LUXE STYLES ==================== */
+.completed-header {
+  margin-bottom: 40px;
+}
 
-.completed-payments-page {
-  background: var(--bg-main);
-  min-height: 100vh;
+.stat-pill {
+  padding: 12px 24px;
+  background: var(--bg-surface);
+  border-radius: 16px;
+}
+
+.archive-layout {
+  margin-top: 20px;
+}
+
+.archive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+.archive-card {
+  padding: 32px;
   position: relative;
-  z-index: 1;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
 }
 
-/* ==================== HEADER MANIFOLD ==================== */
-
-.completed-header-manifold {
-  animation: manifold-entrance-y 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.archive-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--success);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 0 12px rgba(16, 185, 129, 0.2);
 }
 
-@keyframes manifold-entrance-y {
-  from { opacity: 0; transform: translateY(-80px); }
-  to { opacity: 1; transform: translateY(0); }
+.icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* ==================== PROTOCOL TRIGGER GRID ==================== */
-
-.protocol-trigger-grid {
-  perspective: 2000px;
+.icon-box.bg-success-dim {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
 }
 
-.temporal-card-manifold {
-  transform-style: preserve-3d;
-  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+.badge-chain {
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: var(--bg-surface);
 }
 
-.temporal-card-manifold:hover {
-  transform: translateY(-40px) rotateX(4deg);
-  border-color: var(--success) !important;
-  background: rgba(34, 197, 94, 0.05) !important;
+.badge-chain.sui { color: var(--sui-blue); background: rgba(6, 182, 212, 0.1); }
+.badge-chain.arc { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+
+.card-metrics {
+  padding: 24px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* ==================== AUTOMATION KERNEL ==================== */
-
-.automation-kernel-manifold {
-  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+.stats-block {
+  padding: 32px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
-.automation-kernel-manifold:hover {
-  border-color: rgba(34, 197, 94, 0.5) !important;
-  background: rgba(34, 197, 94, 0.03) !important;
+.block-icon {
+  width: 64px;
+  height: 64px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+  border-radius: 20px;
 }
 
-/* ==================== TEMPORAL STREAM ==================== */
-
-details.automation-kernel-manifold summary::-webkit-details-marker {
-  display: none;
-}
-
-details.automation-kernel-manifold[open] summary .kernel-icon-cell {
-  background: var(--sui-blue) !important;
-  color: white !important;
-  box-shadow: 0 0 100px rgba(6, 182, 212, 0.4) !important;
-}
-
-.temporal-shard-shard {
-  position: relative;
-}
-
-.temporal-shard-shard:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  top: 160px;
-  left: 80px;
-  width: 4px;
-  height: calc(100% + 15rem - 160px);
-  background: linear-gradient(to bottom, var(--border-light), transparent);
-  opacity: 0.3;
-  z-index: 1;
-}
-
-.shard-marker-unit .pulse {
-  animation: marker-pulse 2s infinite alternate ease-in-out;
-}
-
-@keyframes marker-pulse {
-  from { transform: scale(0.9); opacity: 0.6; filter: drop-shadow(0 0 10px currentColor); }
-  to { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 40px currentColor); }
-}
-
-/* ==================== LOADING ANIMATION ==================== */
-
-.loading-node-unit .spin {
-  animation: loading-spin 3s infinite linear;
-}
-
-@keyframes loading-spin {
-  from { transform: rotate(0deg); filter: hue-rotate(0deg) brightness(1); }
-  to { transform: rotate(360deg); filter: hue-rotate(90deg) brightness(1.5); }
-}
-
-/* ==================== RESPONSIVENESS ==================== */
-
-@media (max-width: 1600px) {
-  .completed-header-manifold { flex-direction: column; align-items: center; text-align: center; gap: 20rem; }
-  .completed-header-manifold > div:first-child { flex-direction: column; align-items: center; }
-  .status-stats-row { justify-content: center; }
-  .protocol-trigger-grid { grid-template-columns: 1fr !important; }
-  .automation-kernel-manifold { grid-template-columns: 1fr !important; text-align: center; }
-  .kernel-icon-cell { margin: 0 auto; }
-}
-
-@media (max-width: 1200px) {
-  .header-visual-unit { width: 300px !important; height: 300px !important; }
-  .stat-value { font-size: 10rem !important; }
-  .temporal-card-manifold h3 { font-size: 6rem !important; }
-  .temporal-card-manifold { padding: 15rem 10rem !important; }
-}
-
-@media (max-width: 900px) {
-  .completed-header-manifold h1 { font-size: 10rem !important; }
-  .manifold-subtitle { font-size: 3.5rem !important; }
-  .trigger-card-analytics { padding: 10rem 8rem !important; }
-  .temporal-stream-container { padding: 0 10rem 20rem !important; }
-  .temporal-shard-shard { flex-direction: column; align-items: center; text-align: center; }
-  .temporal-shard-shard::after { display: none; }
-}
-
-@media (max-width: 600px) {
-  .completed-header-manifold h1 { font-size: 7rem !important; }
-  .hero-badge { font-size: 1rem !important; padding: 2rem 5rem !important; }
-  .stat-pill-manifold { padding: 5rem 8rem !important; }
-  .stat-value { font-size: 6rem !important; }
-  .btn-primary { font-size: 3rem !important; padding: 6rem 100px !important; width: 100%; }
-  .success-ribbon { position: static !important; margin: 0 auto 10rem !important; width: fit-content; }
+@media (max-width: 768px) {
+  .archive-grid {
+    grid-template-columns: 1fr;
+  }
 }
