@@ -1,0 +1,80 @@
+/* ==================== ENS SETTINGS CYBER-LUXE STYLES ==================== */
+
+.settings-page {
+  background: var(--bg-main);
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ==================== IDENTITY VISUAL NODE ==================== */
+
+.identity-visual-node {
+  animation: node-pulse 6s infinite alternate cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes node-pulse {
+  from { transform: scale(1); box-shadow: inset 0 0 80px rgba(0,0,0,0.8); }
+  to { transform: scale(1.05); border-color: var(--sui-blue); box-shadow: inset 0 0 100px rgba(6, 182, 212, 0.2), 0 0 100px rgba(6, 182, 212, 0.1); }
+}
+
+.identity-visual-node:hover {
+  transform: rotate(10deg) scale(1.1) !important;
+  color: white !important;
+  border-color: var(--sui-blue) !important;
+  box-shadow: 0 0 150px rgba(6, 182, 212, 0.3) !important;
+}
+
+/* ==================== FORM INPUTS ==================== */
+
+.identity-input-manifold {
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.identity-input-manifold:focus {
+  border-color: var(--sui-blue) !important;
+  box-shadow: 0 0 100px rgba(6, 182, 212, 0.2), inset 0 0 60px rgba(0,0,0,0.8) !important;
+  transform: translateX(20px);
+}
+
+.identity-input-manifold::placeholder {
+  color: var(--text-dim);
+  opacity: 0.2;
+}
+
+/* ==================== SYNC BUTTON ==================== */
+
+.btn-sync-identity:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+/* ==================== RESPONSIVENESS ==================== */
+
+@media (max-width: 1600px) {
+  .settings-header-manifold h1 { font-size: 12rem !important; }
+  .manifold-subtitle { font-size: 3rem !important; }
+}
+
+@media (max-width: 1200px) {
+  .settings-manifold { margin: 0 5rem !important; padding: 12rem 8rem !important; }
+  .settings-header-manifold h1 { font-size: 10rem !important; }
+  .identity-visual-node { width: 280px !important; height: 280px !important; margin-bottom: 12rem !important; }
+}
+
+@media (max-width: 900px) {
+  .settings-header-manifold h1 { font-size: 8rem !important; }
+  .identity-input-manifold { font-size: 2.5rem !important; }
+  .btn-sync-identity { font-size: 2.5rem !important; padding: 5rem !important; }
+}
+
+@media (max-width: 600px) {
+  .settings-header-manifold h1 { font-size: 5rem !important; }
+  .manifold-subtitle { font-size: 2.25rem !important; }
+  .settings-manifold { padding: 10rem 6rem !important; border-radius: 80px !important; }
+  .identity-visual-node { width: 220px !important; height: 220px !important; }
+  .identity-input-manifold { padding: 4.5rem 6rem !important; }
+  .identity-input-manifold:focus { transform: none !important; }
+}

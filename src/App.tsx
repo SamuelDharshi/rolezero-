@@ -64,6 +64,7 @@ function App() {
                             <Route path="/ens" element={<ENSShowcase />} />
                             <Route path="/role/:roleId" element={<RoleDashboard />} />
                             <Route path="/role/:roleId/live" element={<RoleDashboardLive />} />
+                            <Route path="/live/:roleId" element={<RoleDashboardLive />} />
                             <Route path="/sponsor/:roleId" element={<SponsorPayment />} />
                             <Route path="/sponsor/:roleId/track" element={<SponsorTracking />} />
                             <Route path="/profile" element={<UserProfile />} />

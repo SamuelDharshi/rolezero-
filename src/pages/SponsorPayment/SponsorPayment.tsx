@@ -1,699 +1,407 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCurrentAccount } from '@mysten/dapp-kit';
-import { useQueryClient } from '@tanstack/react-query';
-import { QRCodeSVG } from 'qrcode.react';
 import { useFundRole } from '@/hooks/useFundRole';
+import { useRoleData } from '@/hooks/useRoleData';
+import { useSponsorTracking } from '@/hooks/useSponsorTracking';
 import { showToast } from '@/components/Toast/Toast';
-import { Loader2, CheckCircle, Wallet, ExternalLink, ArrowLeft } from 'lucide-react';
-import { Button as MovingBorderButton } from '@/components/ui/moving-border';
+import { shortenAddress } from '@/utils/ens';
+import { formatTimestamp } from '@/utils/dateUtils';
+import { SkeletonDashboard } from '@/components/Skeleton/Skeleton';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Loader2, 
+  Wallet, 
+  AlertCircle,
+  Terminal,
+  Activity,
+  Zap,
+  ChevronRight,
+  ArrowLeft,
+  CheckCircle,
+  ExternalLink,
+  Cpu,
+  Globe,
+  Database,
+  Search,
+  Check,
+  Award,
+  TrendingUp,
+  History,
+  Shield,
+  ZapOff,
+  Hash,
+  ArrowUpRight,
+  Clock,
+  ArrowDownLeft,
+  Key,
+  Navigation,
+  Calendar,
+  Smartphone,
+  Layers,
+  Fingerprint,
+  CheckCircle2,
+  Grid,
+  ShieldCheck,
+  Timer,
+  Layout,
+  Smartphone as Phone,
+  ArrowRight
+} from 'lucide-react';
 import './SponsorPayment.css';
 
 export const SponsorPayment: React.FC = () => {
   const { roleId } = useParams<{ roleId: string }>();
   const navigate = useNavigate();
   const account = useCurrentAccount();
-  const { fundRole } = useFundRole();
-  const queryClient = useQueryClient();
+  const { data: roleData, isLoading, error } = useRoleData(roleId);
+  const fundRole = useFundRole(roleId || '');
+  const { sponsorships } = useSponsorTracking(roleId || '');
 
-  const [amount, setAmount] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [txSuccess, setTxSuccess] = useState<string | null>(null);
-  const [pendingPayment, setPendingPayment] = useState(false);
-  const [waitingForWallet, setWaitingForWallet] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successAmount, setSuccessAmount] = useState('');
-  const [hasPaidBefore, setHasPaidBefore] = useState(false);
+  const [amount, setAmount] = useState('1');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [txDigest, setTxDigest] = useState('');
 
-  // Check if sponsor has already paid for this role
-  React.useEffect(() => {
-    if (account && roleId) {
-      const paymentKey = `sponsor-payment-${roleId}-${account.address}`;
-      const hasCompleted = localStorage.getItem(paymentKey);
-      if (hasCompleted) {
-        setHasPaidBefore(true);
-      }
-    }
-  }, [account, roleId]);
-
-  // Auto-execute payment when wallet connects
-  React.useEffect(() => {
-    if (account && pendingPayment && amount) {
-      const amountNum = parseFloat(amount);
-      if (!isNaN(amountNum) && amountNum > 0) {
-        console.log('✅ Wallet connected! Auto-executing payment...');
-        setPendingPayment(false);
-        setWaitingForWallet(false);
-        executePayment();
-      }
-    }
-  }, [account, pendingPayment]);
-
-  const executePayment = async () => {
-    if (!roleId) return;
-    
-    // Validate amount
-    const amountNum = parseFloat(amount);
-    if (isNaN(amountNum) || amountNum <= 0) {
-      showToast({
-        type: 'error',
-        title: 'Invalid Amount',
-        message: 'Please enter a valid positive number.',
-      });
-      return;
-    }
-
-    // Validate reasonable amount (prevent accidental overpayment)
-    if (amountNum > 100000) {
-      const confirm = window.confirm(`⚠️ WARNING: You're about to send ${amountNum.toLocaleString()} SUI!\n\nThis is a very large amount. Are you sure?`);
-      if (!confirm) return;
-    }
-    
-    setIsSubmitting(true);
-    console.log('💰 Executing payment:', amountNum, 'SUI');
-
-    try {
-      const amountMist = Math.floor(amountNum * 1_000_000_000);
-      const result = await fundRole(roleId, amountMist);
-      console.log('✅ Payment successful!', result.digest);
-      setTxSuccess(result.digest);
-      setSuccessAmount(amount);
-      setShowSuccessModal(true); // Show modal
-      
-      // Store payment completion in localStorage to prevent re-showing payment page
-      if (account) {
-        const paymentKey = `sponsor-payment-${roleId}-${account.address}`;
-        const paymentData = JSON.stringify({
-          timestamp: Date.now(),
-          amount: amountNum,
-          txDigest: result.digest,
-        });
-        localStorage.setItem(paymentKey, paymentData);
-        console.log('💾 Payment recorded for sponsor:', account.address);
-      }
-      
-      // Invalidate all role-related queries to update the developer's dashboard
-      console.log('🔄 Invalidating queries to update dashboard...');
-      await queryClient.invalidateQueries({ queryKey: ['role', roleId] });
-      await queryClient.invalidateQueries({ queryKey: ['role-live-transactions', roleId] });
-      await queryClient.invalidateQueries({ queryKey: ['allRoles'] });
-      // Refetch immediately to ensure fresh data (this will trigger real-time update on developer's dashboard)
-      await queryClient.refetchQueries({ queryKey: ['role', roleId] });
-      await queryClient.refetchQueries({ queryKey: ['role-live-transactions', roleId] });
-      console.log('✅ Dashboard data updated! Developer will see this transaction in real-time.');
-      
-      setAmount(''); // Clear input
-      showToast({
-        type: 'success',
-        title: 'Payment Successful!',
-        message: `You funded ${amount} SUI to this role. Transaction confirmed on-chain.`,
-        txDigest: result.digest,
-        duration: 10000,
-      });
-
-      // Auto-redirect to sponsor tracking page after 5 seconds
-      setTimeout(() => {
-        navigate(`/sponsor/${roleId}/track`);
-      }, 5000);
-    } catch (error) {
-      console.error('❌ Payment failed:', error);
-      showToast({
-        type: 'error',
-        title: 'Payment Failed',
-        message: (error as Error).message || 'Transaction could not be completed',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSuiPayment = async () => {
-    const amountNum = parseFloat(amount);
-    if (!amount || amountNum <= 0 || isNaN(amountNum)) {
-      showToast({
-        type: 'error',
-        title: 'Invalid Amount',
-        message: 'Please enter a valid amount greater than 0',
-      });
-      return;
-    }
-
-    // Validate reasonable amount
-    if (amountNum > 100000) {
-      const confirm = window.confirm(`⚠️ WARNING: You're about to send ${amountNum.toLocaleString()} SUI!\n\nThis is a very large amount. Are you sure?`);
-      if (!confirm) return;
-    }
-
-    if (!account) {
-      // Wallet not connected - set flag to auto-execute after connection
-      console.log('⏳ Wallet not connected. Please connect your wallet...');
-      setPendingPayment(true);
-      setWaitingForWallet(true);
-      showToast({
-        type: 'info',
-        title: 'Connect Wallet',
-        message: 'Please connect your Sui wallet. Payment will process automatically after connection.',
-        duration: 8000,
-      });
-      return;
-    }
-
-    // Wallet already connected - execute immediately
-    await executePayment();
-  };
-
-  // Success Modal
-  const SuccessModal = showSuccessModal ? (
-    <div 
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(0, 0, 0, 0.8)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
-        animation: 'fadeIn 0.3s ease-in'
-      }}
-      onClick={() => setShowSuccessModal(false)}
-    >
-      <div 
-        style={{
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-          border: '2px solid #10b981',
-          borderRadius: '1.5rem',
-          padding: '3rem',
-          maxWidth: '500px',
-          width: '90%',
-          textAlign: 'center',
-          animation: 'slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: '0 20px 60px rgba(16, 185, 129, 0.3)'
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Large Success Checkmark */}
-        <div style={{
-          width: '120px',
-          height: '120px',
-          margin: '0 auto 2rem',
-          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          animation: 'scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
-          boxShadow: '0 10px 40px rgba(16, 185, 129, 0.4)'
-        }}>
-          <CheckCircle size={80} style={{color: 'white'}} strokeWidth={3} />
-        </div>
-
-        <h2 style={{
-          fontSize: '2rem',
-          fontWeight: 'bold',
-          color: '#10b981',
-          marginBottom: '1rem'
-        }}>
-          Payment Successful! ✅
-        </h2>
-
-        <p style={{
-          fontSize: '1.25rem',
-          marginBottom: '0.5rem',
-          color: 'var(--text-primary)'
-        }}>
-          <strong>{successAmount} SUI</strong> funded successfully
-        </p>
-
-        <p style={{
-          fontSize: '0.875rem',
-          color: 'var(--text-secondary)',
-          marginBottom: '1.5rem'
-        }}>
-          Transaction confirmed on Sui blockchain<br />
-          <span style={{color: '#10b981', fontWeight: 600}}>Redirecting to tracking page in 5 seconds...</span>
-        </p>
-
-        <div style={{
-          background: 'rgba(16, 185, 129, 0.1)',
-          border: '1px solid rgba(16, 185, 129, 0.3)',
-          borderRadius: '0.75rem',
-          padding: '1rem',
-          marginBottom: '2rem',
-          textAlign: 'left'
-        }}>
-          <p style={{fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '0.25rem'}}>
-            Transaction ID:
-          </p>
-          <code style={{
-            fontSize: '0.75rem',
-            wordBreak: 'break-all',
-            color: '#10b981'
-          }}>
-            {txSuccess}
-          </code>
-        </div>
-
-        <p style={{
-          fontSize: '0.875rem',
-          color: 'var(--text-secondary)',
-          marginBottom: '1rem',
-          padding: '1rem',
-          background: 'rgba(16, 185, 129, 0.1)',
-          borderRadius: '0.5rem',
-          border: '1px solid rgba(16, 185, 129, 0.2)'
-        }}>
-          ✨ Thank you for your support! The developer will see your contribution in their dashboard.
-        </p>
-
-        <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap'}}>
-          <button
-            onClick={() => {
-              setShowSuccessModal(false);
-              navigate(`/sponsor/${roleId}`);
-            }}
-            style={{
-              padding: '0.75rem 1.5rem',
-              background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-              border: 'none',
-              borderRadius: '0.75rem',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 600,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s',
-            }}
-          >
-            💰 Pay Again
-          </button>
-          
-          <button
-            onClick={() => {
-              const paymentUrl = `${window.location.origin}/sponsor/${roleId}`;
-              navigator.clipboard.writeText(paymentUrl);
-              showToast({
-                type: 'success',
-                title: 'Link Copied!',
-                message: 'Payment link copied to clipboard',
-                duration: 3000,
-              });
-            }}
-            style={{
-              padding: '0.75rem 1.5rem',
-              background: 'rgba(59, 130, 246, 0.2)',
-              border: '2px solid #3b82f6',
-              borderRadius: '0.75rem',
-              color: '#60a5fa',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 600,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s',
-            }}
-          >
-            📋 Copy Payment Link
-          </button>
-
-          <a
-            href={`https://suiscan.xyz/testnet/tx/${txSuccess}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              padding: '0.75rem 1.5rem',
-              background: 'transparent',
-              border: '2px solid #10b981',
-              borderRadius: '0.75rem',
-              color: '#10b981',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 600,
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-            }}
-          >
-            <ExternalLink size={16} />
-            View on Explorer
-          </a>
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes scaleIn {
-          from {
-            opacity: 0;
-            transform: scale(0.5);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-      `}</style>
-    </div>
-  ) : null;
-
-  // Success message shown, but don't block the page
-  const SuccessBanner = txSuccess ? (
-    <div style={{
-      background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%)',
-      border: '2px solid rgba(16, 185, 129, 0.5)',
-      borderRadius: '1rem',
-      padding: '1.5rem',
-      marginBottom: '1.5rem',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '1rem'
-    }}>
-      <CheckCircle size={32} style={{color: '#10b981', flexShrink: 0}} />
-      <div style={{flex: 1}}>
-        <h3 style={{color: '#10b981', marginBottom: '0.5rem', fontSize: '1.25rem', fontWeight: 'bold'}}>
-          ✅ Payment Successful!
-        </h3>
-        <p style={{marginBottom: '0.5rem'}}>Transaction: <code>{txSuccess}</code></p>
-        <p style={{fontSize: '0.875rem', opacity: 0.9}}>Funds have been added to the role. You can add more funds below or view the dashboard.</p>
-      </div>
-      <div style={{display: 'flex', gap: '0.5rem', flexDirection: 'column'}}>
-        <MovingBorderButton
-          onClick={() => navigate(`/role/${roleId}/live`)}
-          borderRadius="0.75rem"
-          className="btn btn-primary"
-          containerClassName="h-10"
-        >
-          View Dashboard
-        </MovingBorderButton>
-        <button
-          onClick={() => {
-            setTxSuccess(null);
-            setAmount('');
-          }}
-          style={{
-            padding: '0.5rem 1rem',
-            background: 'rgba(255,255,255,0.1)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '0.5rem',
-            color: 'white',
-            cursor: 'pointer',
-            fontSize: '0.875rem'
-          }}
-        >
-          Fund Again
-        </button>
+  if (isLoading) return (
+    <div className="sponsor-page">
+      <div className="ens-bg" />
+      <div className="container" style={{ maxWidth: '1800px', paddingTop: '150px' }}>
+        <SkeletonDashboard />
       </div>
     </div>
-  ) : null;
+  );
 
-  // REQUIRE WALLET CONNECTION for sponsor page to identify sponsor
-  if (!account && !txSuccess) {
+  if (error || !roleData) {
     return (
-      <div className="container sponsor-page">
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.2) 100%)',
-          border: '2px solid rgba(251, 191, 36, 0.5)',
-          borderRadius: '1.5rem',
-          padding: '3rem',
-          textAlign: 'center',
-          maxWidth: '600px',
-          margin: '2rem auto'
-        }}>
-          <div style={{
-            width: '100px',
-            height: '100px',
-            margin: '0 auto 1.5rem',
-            background: 'rgba(251, 191, 36, 0.2)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <Wallet size={60} style={{color: '#fbbf24'}} />
-          </div>
-          
-          <h1 style={{fontSize: '2rem', marginBottom: '1rem', color: '#fbbf24', fontWeight: 'bold'}}>
-            Connect Your Wallet First
-          </h1>
-          
-          <p style={{fontSize: '1.125rem', marginBottom: '0.5rem'}}>
-            Please connect your Sui wallet to sponsor this role.
-          </p>
-          
-          <p style={{fontSize: '0.875rem', opacity: 0.8, marginBottom: '2rem'}}>
-            Click "Connect Wallet" in the top-right corner to get started. This helps us identify you as a sponsor and track your contributions.
-          </p>
-          
-          <div style={{display: 'flex', gap: '1rem', justifyContent: 'center'}}>
-            <button
-              onClick={() => navigate('/')}
-              style={{
-                padding: '0.75rem 2rem',
-                background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                border: 'none',
-                borderRadius: '0.75rem',
-                color: '#1e293b',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: 700,
-              }}
+      <div className="sponsor-page">
+        <div className="ens-bg" />
+        <div className="container" style={{ maxWidth: '1800px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
+          <motion.div initial={{ opacity: 0, scale: 0.98, y: 150 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ ease: [0.16, 1, 0.3, 1], duration: 1.4 }} className="card card-glow sync-error-manifold" style={{ maxWidth: '1600px', textAlign: 'center', borderColor: 'var(--error)', padding: '25rem 15rem', background: 'var(--bg-card)', borderRadius: '120px', boxShadow: '0 120px 240px rgba(239, 68, 68, 0.4)' }}>
+            <div className="card card-glow error-icon-unit" style={{ width: '350px', height: '350px', background: 'rgba(239, 68, 68, 0.15)', border: '2px solid var(--error)', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12rem', color: 'var(--error)', boxShadow: '0 0 150px rgba(239, 68, 68, 0.4)' }}>
+              <AlertCircle size={220} strokeWidth={1} />
+            </div>
+            <h2 className="cyber-glitch-text" style={{ fontSize: '13rem', color: 'var(--error)', fontWeight: 950, marginBottom: '10rem', letterSpacing: '-0.04em', margin: 0, lineHeight: 0.8 }}>SYNC_FAILURE</h2>
+            <p style={{ color: 'var(--text-dim)', fontSize: '4.5rem', marginBottom: '20rem', maxWidth: '1300px', margin: '8rem auto 20rem', lineHeight: 1.8, fontWeight: 500, opacity: 0.6 }}>The protocol manifold could not retrieve the specified role record from the decentralized manifold registry. Connection sequence terminated across the orbital layer.</p>
+            <motion.button 
+              whileHover={{ scale: 1.05, background: 'var(--bg-main)', borderColor: 'white', color: 'white', boxShadow: '0 60px 120px rgba(255, 255, 255, 0.15)' }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/')} 
+              className="btn btn-secondary card card-glow" 
+              style={{ padding: '6rem 12rem', fontWeight: 950, background: 'transparent', letterSpacing: '0.8rem', fontSize: '3.5rem', border: '3px solid var(--border-light)', borderRadius: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8rem', cursor: 'pointer', margin: '0 auto', transition: 'all 0.6s' }}
             >
-              Back to Home
-            </button>
-          </div>
+              <Navigation size={80} strokeWidth={2} />
+              <span>RETURN_TO_REGISTRY</span>
+            </motion.button>
+          </motion.div>
         </div>
       </div>
     );
   }
 
+  const handleSponsor = async () => {
+    if (!account) {
+      showToast({ type: 'error', title: 'IDENTITY AUTH FAILED', message: 'Neural nodes must be connected to authorize liquidity injection' });
+      return;
+    }
+
+    const value = parseFloat(amount);
+    if (isNaN(value) || value <= 0) {
+      showToast({ type: 'error', title: 'INVALID MAGNITUDE', message: 'Specify a valid volumetric magnitude for protocol injection' });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const result = await fundRole.mutateAsync(value);
+      setTxDigest(result.digest);
+      setShowSuccess(true);
+      showToast({ type: 'success', title: 'INJECTION SYNCED', message: 'Operational reserves have been updated on the decentralized ledger', txDigest: result.digest });
+      setAmount('1');
+    } catch (err: any) {
+      showToast({ type: 'error', title: 'INJECTION ABORTED', message: err.message || 'Reserve synchronization failed - temporal lock active' });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
-    <div className="container sponsor-page">
-      {SuccessModal}
+    <div className="sponsor-page">
+      <div className="ens-bg" />
       
-      {/* Thank You Message for Sponsors Who Already Paid */}
-      {hasPaidBefore && !showSuccessModal && (
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%)',
-          border: '2px solid rgba(16, 185, 129, 0.5)',
-          borderRadius: '1.5rem',
-          padding: '3rem',
-          marginBottom: '2rem',
-          textAlign: 'center'
-        }}>
-          <div style={{
-            width: '100px',
-            height: '100px',
-            margin: '0 auto 1.5rem',
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 10px 40px rgba(16, 185, 129, 0.4)'
-          }}>
-            <CheckCircle size={60} style={{color: 'white'}} strokeWidth={3} />
-          </div>
-          
-          <h2 style={{
-            fontSize: '2rem',
-            fontWeight: 'bold',
-            color: '#10b981',
-            marginBottom: '1rem'
-          }}>
-            Thank You for Your Support! 🎉
-          </h2>
-          
-          <p style={{
-            fontSize: '1.125rem',
-            marginBottom: '0.5rem',
-            color: 'var(--text-primary)'
-          }}>
-            You've already contributed to this role.
-          </p>
-          
-          <p style={{
-            fontSize: '0.875rem',
-            color: 'var(--text-secondary)',
-            marginBottom: '1.5rem'
-          }}>
-            Your payment has been recorded and the developer has been notified. You can add more funds below if you'd like to contribute further.
-          </p>
-          
-          <button
-            onClick={() => navigate('/')}
-            style={{
-              padding: '0.75rem 2rem',
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              border: 'none',
-              borderRadius: '0.75rem',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 600,
-              transition: 'all 0.2s',
-              boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.3)';
-            }}
-          >
-            Return Home
-          </button>
-        </div>
-      )}
-      
-      <div className="page-header">
-        <MovingBorderButton
-          onClick={() => navigate('/')}
-          borderRadius="0.75rem"
-          className="btn btn-secondary"
+      <div className="container" style={{ maxWidth: '1800px', paddingTop: '150px' }}>
+        <motion.div 
+          initial={{ opacity: 0, y: -100 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ ease: [0.16, 1, 0.3, 1], duration: 1.4 }}
+          className="sponsor-header-manifold"
+          style={{ marginBottom: '22rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '1px dashed var(--border-light)', paddingBottom: '15rem' }}
         >
-          ← Back to Home
-        </MovingBorderButton>
-      </div>
-
-      {SuccessBanner}
-
-      <h1>Sponsor Role Payment</h1>
-      <p className="subtitle">Support this role with your contribution</p>
-
-      <div className="sponsor-grid">
-        {/* QR Code Section */}
-        <div className="card qr-section">
-          <h3>Scan to Pay</h3>
-          <p className="section-description">
-            Scan this QR code with your Sui wallet to send funds directly
-          </p>
-
-          <div className="qr-container">
-            {roleId && (
-              <QRCodeSVG
-                value={roleId}
-                size={200}
-                level="H"
-                includeMargin={true}
-                fgColor="var(--text-primary)"
-                bgColor="transparent"
-              />
-            )}
-          </div>
-
-          <div className="role-address">
-            <label>Role Address:</label>
-            <code>{roleId}</code>
-          </div>
-        </div>
-
-        {/* Sui Wallet Payment */}
-        <div className="card payment-section">
-          <div className="payment-header">
-            <Wallet size={24} />
-            <h3>Pay from Sui Wallet</h3>
-          </div>
-          
-          <p className="section-description">
-            {!account ? (
-              <span style={{color: '#fbbf24', fontWeight: 500}}>
-                💡 Click "Connect & Pay" to connect wallet and send payment in one flow!
-              </span>
-            ) : (
-              'Connected! Enter amount and click Pay to send funds'
-            )}
-          </p>
-
-          <div className="payment-form">
-            <div className="form-group">
-              <label>Amount (SUI)</label>
-              <input
-                type="number"
-                placeholder="100"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                disabled={isSubmitting}
-              />
+          <div style={{ display: 'flex', gap: '15rem', alignItems: 'flex-end' }}>
+            <div className="header-icon-visual card card-glow" style={{ width: '380px', height: '380px', borderRadius: '120px', background: 'var(--bg-card)', color: 'var(--sui-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--border-subtle)', boxShadow: '0 0 200px rgba(6, 182, 212, 0.4)', flexShrink: 0 }}>
+              <TrendingUp size={220} strokeWidth={1} />
             </div>
+            <div>
+              <div className="hero-badge card card-glow" style={{ marginBottom: '10rem', fontSize: '1.25rem', letterSpacing: '1rem', padding: '2rem 6rem', width: 'fit-content', background: 'rgba(6, 182, 212, 0.2)', color: 'var(--sui-blue)', border: '2px solid rgba(6, 182, 212, 0.5)', fontWeight: 950, borderRadius: '35px', display: 'flex', alignItems: 'center', gap: '6rem', boxShadow: '0 0 80px rgba(6, 182, 212, 0.3)' }}>
+                <div className="pulse" style={{ width: '18px', height: '18px', background: 'var(--sui-blue)', borderRadius: '50%', boxShadow: '0 0 25px var(--sui-blue)' }} />
+                RESERVE_INJECTION_MODULE_v9.4_FINAL
+              </div>
+              <h1 className="cyber-glitch-text" style={{ fontSize: '15rem', fontWeight: 950, marginBottom: '10rem', letterSpacing: '-0.0625em', margin: 0, lineHeight: 0.8 }}>RESERVE_INJECTION</h1>
+              <p className="manifold-subtitle" style={{ fontSize: '4.5rem', color: 'var(--text-dim)', maxWidth: '1600px', fontWeight: 500, letterSpacing: '0.025em', lineHeight: 1.6, opacity: 0.5, marginTop: '10rem' }}>Inject precise liquidity magnitudes to operationalize role definitions and sustain autonomous distribution cycles across the decentralized neural mesh layers.</p>
+            </div>
+          </div>
+          <motion.button 
+            whileHover={{ scale: 1.05, background: 'rgba(255, 255, 255, 0.05)', borderColor: 'white', color: 'white', boxShadow: '0 80px 160px rgba(255, 255, 255, 0.15)' }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate(-1)} 
+            className="btn btn-secondary card card-glow" 
+            style={{ padding: '6.5rem 12rem', fontSize: '3rem', fontWeight: 950, background: 'transparent', letterSpacing: '0.8rem', borderRadius: '60px', color: 'var(--text-dim)', transition: 'all 0.6s', display: 'flex', alignItems: 'center', gap: '8rem', border: '3px solid var(--border-light)', cursor: 'pointer', boxShadow: 'inset 0 0 60px rgba(0,0,0,0.8)' }}
+          >
+            <ArrowLeft size={100} strokeWidth={2} />
+            <span>EXIT_INJECTION_MODULE</span>
+          </motion.button>
+        </motion.div>
 
-            <MovingBorderButton
-              onClick={handleSuiPayment}
-              disabled={isSubmitting || !amount || parseFloat(amount) <= 0 || isNaN(parseFloat(amount))}
-              borderRadius="0.75rem"
-              className="btn btn-primary btn-large"
+        <div className="injection-manifold-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 1000px', gap: '15rem', marginBottom: '35rem' }}>
+          <div className="injection-main-manifold">
+            <motion.div 
+              initial={{ opacity: 0, x: -150 }} 
+              animate={{ opacity: 1, x: 0 }} 
+              transition={{ delay: 0.3, ease: [0.16, 1, 0.3, 1], duration: 1.4 }} 
+              className="card card-glow" 
+              style={{ padding: '20rem 15rem', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '150px', boxShadow: '0 120px 240px rgba(0,0,0,0.8)' }}
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="spin" /> Processing Payment...
-                </>
-              ) : waitingForWallet ? (
-                <>
-                  <Loader2 className="spin" /> Waiting for Wallet...
-                </>
-              ) : !account ? (
-                <>
-                  <Wallet size={18} /> Connect & Pay {amount && `${amount} SUI`}
-                </>
-              ) : (
-                <>
-                  <Wallet size={18} /> Pay {amount && `${amount} SUI`}
-                </>
-              )}
-            </MovingBorderButton>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12rem', marginBottom: '22rem', paddingBottom: '15rem', borderBottom: '1px dashed var(--border-light)' }}>
+                <div className="card card-glow" style={{ padding: '6rem', background: 'var(--bg-main)', color: 'var(--sui-blue)', borderRadius: '60px', border: '2px solid var(--border-light)', boxShadow: 'inset 0 0 60px rgba(0,0,0,0.8)' }}>
+                  <Key size={150} strokeWidth={1} />
+                </div>
+                <div>
+                  <h3 className="cyber-glitch-text" style={{ margin: 0, fontSize: '11rem', fontWeight: 950, letterSpacing: '-0.02em', lineHeight: 0.8 }}>PROTOCOL_AUTHORIZATION</h3>
+                  <div style={{ fontSize: '3rem', color: 'var(--text-dim)', fontWeight: 950, letterSpacing: '1.2rem', textTransform: 'uppercase', marginTop: '8rem', opacity: 0.4 }}>SYNC_NODE: {roleId?.slice(0, 32).toUpperCase()}</div>
+                </div>
+              </div>
+              
+              <div className="injection-input-unit" style={{ marginBottom: '25rem' }}>
+                <label style={{ fontWeight: 950, letterSpacing: '1.5rem', fontSize: '3rem', marginBottom: '12rem', display: 'block', textTransform: 'uppercase', color: 'var(--text-dim)', opacity: 0.4, marginLeft: '5rem' }}>VOLUMETRIC_MAGNITUDE</label>
+                <div className="amount-input-manifold card card-glow" style={{ padding: '15rem 20rem', background: 'var(--bg-main)', border: '3px solid var(--border-light)', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '15rem', position: 'relative', overflow: 'hidden', boxShadow: 'inset 0 0 100px rgba(0,0,0,0.9)' }}>
+                  <div className="pulse-radial-glow" style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, rgba(6, 182, 212, 0.15), transparent 70%)', pointerEvents: 'none' }} />
+                  <input 
+                    type="number" 
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00"
+                    step="0.1"
+                    min="0"
+                    disabled={isProcessing}
+                    style={{ fontSize: '25rem', fontWeight: 950, background: 'transparent', border: 'none', color: 'white', width: '100%', outline: 'none', lineHeight: 1, letterSpacing: '-0.04em' }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4.5rem' }}>
+                    <span className="token-suffix cyber-glitch-text" style={{ fontSize: '11rem', fontWeight: 950, color: 'var(--sui-blue)', letterSpacing: '0.2em', opacity: 1, lineHeight: 1 }}>SUI</span>
+                    <div className="pulse" style={{ width: '50px', height: '50px', background: 'var(--sui-blue)', borderRadius: '50%', boxShadow: '0 0 80px var(--sui-blue)' }} />
+                  </div>
+                </div>
+              </div>
 
-            {!account && (
-              <p className="warning-text">
-                ⚠️ Please connect your Sui wallet to make a payment
-              </p>
-            )}
+              <div className="role-telemetry-manifold" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15rem', marginTop: '18rem' }}>
+                <div className="tele-unit-card card card-glow" style={{ padding: '12rem 10rem', background: 'rgba(6, 182, 212, 0.15)', borderRadius: '100px', border: '3px solid rgba(6, 182, 212, 0.5)', textAlign: 'left', boxShadow: '0 60px 120px rgba(0,0,0,0.5)' }}>
+                  <div style={{ color: 'var(--sui-blue)', fontWeight: 950, fontSize: '2rem', letterSpacing: '1rem', marginBottom: '6rem', textTransform: 'uppercase', opacity: 0.5 }}>TARGET_PROTOCOL</div>
+                  <div className="cyber-glitch-text" style={{ textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 950, fontSize: '7rem', wordBreak: 'break-all', lineHeight: 1, color: 'white' }}>{roleData.name}</div>
+                </div>
+                <div className="tele-unit-card card card-glow" style={{ padding: '12rem 10rem', background: 'rgba(34, 197, 94, 0.15)', borderRadius: '100px', border: '3px solid rgba(34, 197, 94, 0.5)', textAlign: 'left', boxShadow: '0 60px 120px rgba(0,0,0,0.5)' }}>
+                  <div style={{ color: 'var(--success)', fontWeight: 950, fontSize: '2rem', letterSpacing: '1rem', marginBottom: '6rem', textTransform: 'uppercase', opacity: 0.5 }}>RESERVE_CAPACITY</div>
+                  <div className="cyber-glitch-text" style={{ color: 'var(--success)', fontWeight: 950, fontSize: '9rem', lineHeight: 1 }}>{(roleData.remainingBalance / 1_000_000_000).toFixed(4)} <span style={{ fontSize: '3.5rem', opacity: 0.5, fontWeight: 950, letterSpacing: '0.4rem' }}>SUI</span></div>
+                </div>
+                <div className="tele-unit-card card card-glow" style={{ padding: '12rem 10rem', background: 'var(--bg-main)', borderRadius: '80px', border: '2px solid var(--border-light)', textAlign: 'left', boxShadow: 'inset 0 0 60px rgba(0,0,0,0.6)' }}>
+                  <div style={{ fontWeight: 950, fontSize: '1.75rem', letterSpacing: '0.8rem', marginBottom: '6rem', color: 'var(--text-dim)', textTransform: 'uppercase', opacity: 0.4 }}>GENESIS_EPOCH</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6rem', fontSize: '3.5rem', fontWeight: 950, color: 'white', opacity: 0.7 }}>
+                     <Clock size={80} color="var(--sui-blue)" strokeWidth={1} />
+                     <span style={{ letterSpacing: '0.05em' }}>{formatTimestamp(roleData.startTime).toUpperCase()}</span>
+                  </div>
+                </div>
+                <div className="tele-unit-card card card-glow" style={{ padding: '12rem 10rem', background: 'var(--bg-main)', borderRadius: '80px', border: '2px solid var(--border-light)', textAlign: 'left', boxShadow: 'inset 0 0 60px rgba(0,0,0,0.6)' }}>
+                  <div style={{ fontWeight: 950, fontSize: '1.75rem', letterSpacing: '0.8rem', marginBottom: '6rem', color: 'var(--text-dim)', textTransform: 'uppercase', opacity: 0.4 }}>DEPLETION_THRESHOLD</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6rem', fontSize: '3.5rem', fontWeight: 950, color: 'white', opacity: 0.7 }}>
+                     <Calendar size={80} color="rgba(239, 68, 68, 0.7)" strokeWidth={1} />
+                     <span style={{ letterSpacing: '0.05em' }}>{formatTimestamp(roleData.expiryTime).toUpperCase()}</span>
+                  </div>
+                </div>
+              </div>
+
+              <motion.button 
+                whileHover={{ scale: 1.05, boxShadow: '0 120px 240px rgba(6, 182, 212, 0.8)', filter: 'brightness(1.2)' }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSponsor}
+                disabled={isProcessing || !account}
+                className="btn btn-primary card card-glow"
+                style={{ width: '100%', padding: '8rem', height: 'auto', background: 'var(--sui-blue)', border: 'none', borderRadius: '80px', color: 'white', fontWeight: 950, fontSize: '5rem', marginTop: '22rem', letterSpacing: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10rem', boxShadow: '0 100px 200px rgba(6, 182, 212, 0.6)', cursor: 'pointer', transition: 'all 0.6s' }}
+              >
+                {isProcessing ? <Activity className="spin" size={130} strokeWidth={1} /> : <Zap size={130} strokeWidth={2} />}
+                <span>{isProcessing ? 'SYNCHRONIZING...' : 'AUTHORIZE_INJECTION'}</span>
+              </motion.button>
+              
+              {!account && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8rem', marginTop: '12rem', opacity: 0.6, color: 'var(--error)' }}>
+                  <ZapOff size={80} strokeWidth={1.5} />
+                  <div style={{ textTransform: 'uppercase', letterSpacing: '1.2rem', fontSize: '2.5rem', fontWeight: 950 }}>
+                    NEURAL_AUTH_REQUIRED: CONNECT_NODE_TO_PROCEED
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
+
+            <div style={{ marginTop: '25rem', display: 'flex', alignItems: 'center', gap: '12rem', opacity: 0.2, borderTop: '1px dashed var(--border-light)', paddingTop: '20rem', paddingLeft: '15rem' }}>
+              <ShieldCheck size={320} strokeWidth={1} color="var(--text-dim)" />
+              <div style={{ fontSize: '4rem', color: 'var(--text-dim)', fontWeight: 500, lineHeight: 1.8, maxWidth: '1600px' }}>
+                All injections are mathematically non-reversible and atomically bounded to the target protocol identity across the decentralized neural ledger manifold layers. Integrity verified by sub-epoch precision checks at the orbital connectivity ring.
+              </div>
+            </div>
+          </div>
+
+          <div className="injection-side-manifold" style={{ display: 'flex', flexDirection: 'column', gap: '15rem' }}>
+            <motion.div 
+              initial={{ opacity: 0, x: 150 }} 
+              animate={{ opacity: 1, x: 0 }} 
+              transition={{ delay: 0.4, ease: [0.16, 1, 0.3, 1], duration: 1.4 }} 
+              className="card card-glow" 
+              style={{ padding: '15rem 12rem', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '120px', boxShadow: '0 100px 200px rgba(0,0,0,0.7)' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15rem', borderBottom: '1px dashed var(--border-light)', paddingBottom: '10rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10rem' }}>
+                  <div className="card card-glow" style={{ padding: '4.5rem', background: 'rgba(34, 197, 94, 0.2)', color: 'var(--success)', borderRadius: '45px', border: '2px solid var(--border-light)', boxShadow: 'inset 0 0 40px rgba(0,0,0,0.7)' }}>
+                    <Activity size={130} strokeWidth={1} />
+                  </div>
+                  <h3 className="cyber-glitch-text" style={{ textTransform: 'uppercase', letterSpacing: '0.8rem', margin: 0, fontSize: '6rem', fontWeight: 950, color: 'white', lineHeight: 1 }}>TELEMETRY</h3>
+                </div>
+                <div className="live-telemetry-pill card card-glow" style={{ padding: '2.5rem 8rem', background: 'rgba(34, 197, 94, 0.25)', border: '3px solid rgba(34, 197, 94, 0.7)', color: 'var(--success)', fontSize: '2rem', fontWeight: 950, letterSpacing: '0.8rem', borderRadius: '45px', display: 'flex', alignItems: 'center', gap: '5rem', boxShadow: '0 0 60px rgba(34, 197, 94, 0.4)' }}>
+                  <div className="pulse" style={{ width: '32px', height: '32px', background: 'var(--success)', borderRadius: '50%', boxShadow: '0 0 45px var(--success)' }} />
+                  <span>LIVE_FEED</span>
+                </div>
+              </div>
+
+              <p style={{ fontSize: '4rem', color: 'var(--text-dim)', marginBottom: '20rem', fontWeight: 500, lineHeight: 1.8, opacity: 0.5 }}>Recent reserve adjustments synchronized with the decentralized neural ledger manifolds across global node clusters.</p>
+
+              <div className="telemetry-feed-stack" style={{ display: 'flex', flexDirection: 'column', gap: '10rem' }}>
+                {sponsorships && sponsorships.length > 0 ? (
+                  sponsorships.map((sponsor, idx) => (
+                    <motion.div 
+                      key={`${sponsor.address}-${idx}`} 
+                      initial={{ opacity: 0, x: 150 }} 
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.1 + 0.6, ease: [0.16, 1, 0.3, 1], duration: 1.2 }}
+                      className="telemetry-item card card-glow"
+                      style={{ background: 'var(--bg-main)', border: '2px solid var(--border-light)', padding: '10rem', borderRadius: '60px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.6s', boxShadow: 'inset 0 0 60px rgba(0,0,0,0.7)' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6rem' }}>
+                        <div className="card card-glow" style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--success)', border: 'none', boxShadow: '0 0 50px var(--success)' }} />
+                        <div style={{ fontSize: '4rem', fontWeight: 950, fontFamily: 'JetBrains Mono', color: 'white', letterSpacing: '0.05em' }}>{shortenAddress(sponsor.address, 20).toUpperCase()}</div>
+                      </div>
+                      <div className="cyber-glitch-text" style={{ fontWeight: 950, color: 'var(--success)', fontSize: '6rem', letterSpacing: '-0.02em', lineHeight: 1 }}>+{(sponsor.total).toFixed(2)}_SUI</div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="empty-telemetry-state-cell card card-glow" style={{ padding: '35rem 10rem', textAlign: 'center', border: '6px dashed var(--border-light)', borderRadius: '100px', color: 'var(--text-dim)', fontSize: '3.5rem', fontWeight: 950, background: 'rgba(6, 182, 212, 0.08)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15rem', boxShadow: 'inset 0 0 120px rgba(0,0,0,0.8)' }}>
+                    <div className="card card-glow" style={{ width: '380px', height: '380px', borderRadius: '120px', background: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--border-light)', opacity: 0.05, boxShadow: 'inset 0 0 80px rgba(0,0,0,0.8)' }}>
+                       <Activity size={250} strokeWidth={0.5} />
+                    </div>
+                    <div style={{ letterSpacing: '1.2rem', textTransform: 'uppercase', opacity: 0.3, lineHeight: 1.6 }}>KERNEL_IDLE:<br/>NO_ACTIVITY_STREAM_DETECTED</div>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ marginTop: '25rem', borderTop: '1px dashed var(--border-light)', paddingTop: '15rem' }}>
+                <motion.button 
+                  whileHover={{ scale: 1.05, background: 'rgba(255, 255, 255, 0.05)', borderColor: 'white', color: 'white', boxShadow: '0 80px 160px rgba(0,0,0,0.7)' }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate(`/live/${roleId}`)} 
+                  className="btn btn-secondary card card-glow" 
+                  style={{ width: '100%', gap: '8rem', justifyContent: 'center', padding: '8rem', fontWeight: 950, background: 'rgba(255,255,255,0.03)', fontSize: '4rem', letterSpacing: '0.8rem', borderRadius: '60px', border: '3px solid var(--border-light)', color: 'var(--text-dim)', cursor: 'pointer', transition: 'all 0.6s', boxShadow: 'inset 0 0 60px rgba(0,0,0,0.8)' }}
+                >
+                  <ArrowRight size={100} strokeWidth={2} />
+                  <span>EXIT_OPERATIONAL_HANDLER</span>
+                </motion.button>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
 
-      <div className="card info-box" style={{marginTop: '2rem'}}>
-        <h4>💡 Sponsor Information</h4>
-        <p>You are sponsoring a payroll role. Your contribution will help fund scheduled payments.</p>
-        <p>After funding, you can close this page. The role owner will manage the payment execution.</p>
-        <button 
-          onClick={() => navigate('/')}
-          className="btn btn-secondary"
-          style={{marginTop: '1rem'}}
-        >
-          <ArrowLeft size={18} /> Back to Home
-        </button>
-      </div>
+      <AnimatePresence mode="wait">
+        {showSuccess && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            className="success-overlay-manifold" 
+            style={{ position: 'fixed', inset: 0, background: 'rgba(5, 6, 8, 0.99)', backdropFilter: 'blur(150px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '30rem' }}
+          >
+            <motion.div 
+              initial={{ scale: 0.7, y: 400, opacity: 0 }} 
+              animate={{ scale: 1, y: 0, opacity: 1 }} 
+              exit={{ scale: 0.6, opacity: 0 }} 
+              transition={{ type: 'spring', damping: 50, stiffness: 200 }}
+              className="success-modal-manifold card card-glow" 
+              style={{ maxWidth: '1800px', width: '100%', textAlign: 'center', border: '3px solid var(--success)', background: 'var(--bg-card)', padding: '30rem 20rem', borderRadius: '150px', boxShadow: '0 0 400px rgba(34, 197, 94, 0.6)' }}
+            >
+              <div className="card card-glow success-icon-visual" style={{ width: '450px', height: '450px', background: 'rgba(34, 197, 94, 0.25)', border: '3px solid var(--success)', borderRadius: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15rem', boxShadow: '0 0 200px rgba(34, 197, 94, 0.9)', color: 'var(--success)' }}>
+                <CheckCircle2 size={320} strokeWidth={1} className="pulse" />
+              </div>
+              <h2 className="cyber-glitch-text" style={{ fontSize: '15rem', fontWeight: 950, marginBottom: '12rem', color: 'white', letterSpacing: '-0.0625em', margin: 0, lineHeight: 0.8 }}>INJECTION_OK</h2>
+              <div style={{ fontSize: '5rem', marginBottom: '20rem', color: 'var(--text-dim)', lineHeight: 1.6, fontWeight: 500, maxWidth: '1400px', margin: '12rem auto 20rem', opacity: 0.6 }}>The protocol operational reserves have been successfully synchronized with the new liquidity magnitude injection.</div>
+              
+              <div className="sync-hash-manifold card card-glow" style={{ background: 'var(--bg-main)', padding: '12rem', borderRadius: '100px', border: '3px solid var(--border-light)', marginBottom: '22rem', textAlign: 'left', position: 'relative', overflow: 'hidden', boxShadow: 'inset 0 0 120px rgba(0,0,0,0.9)' }}>
+                <div className="diagonal-decoration" style={{ position: 'absolute', top: 0, right: 0, width: '500px', height: '500px', background: 'radial-gradient(circle at top right, rgba(6, 182, 212, 0.25), transparent 70%)', pointerEvents: 'none' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10rem', fontSize: '3rem', color: 'var(--text-dim)', fontWeight: 950, textTransform: 'uppercase', marginBottom: '10rem', opacity: 0.4 }}>
+                  <Hash size={100} color="var(--sui-blue)" strokeWidth={1} />
+                  <span style={{ letterSpacing: '1.2rem' }}>SYNCHRONIZATION_HASH</span>
+                </div>
+                <div className="cyber-glitch-text" style={{ fontSize: '4.5rem', color: 'var(--sui-blue)', wordBreak: 'break-all', fontWeight: 950, letterSpacing: '0.08em', display: 'block', lineHeight: 1.4, fontFamily: 'JetBrains Mono' }}>{txDigest.toUpperCase()}</div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '15rem' }}>
+                <motion.button 
+                  whileHover={{ scale: 1.05, background: 'rgba(255, 255, 255, 0.05)', borderColor: 'white', color: 'white', boxShadow: '0 80px 160px rgba(0,0,0,0.7)' }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowSuccess(false)} 
+                  className="btn btn-secondary card card-glow" 
+                  style={{ flex: 1, padding: '8rem', fontWeight: 950, fontSize: '4.5rem', background: 'transparent', border: '4px solid var(--border-light)', color: 'var(--text-dim)', letterSpacing: '0.8rem', borderRadius: '80px', cursor: 'pointer', transition: 'all 0.6s', boxShadow: 'inset 0 0 60px rgba(0,0,0,0.8)' }}
+                >
+                  NEW_INJECTION
+                </motion.button>
+                <motion.a 
+                  whileHover={{ scale: 1.05, boxShadow: '0 150px 300px rgba(34, 197, 94, 0.9)', filter: 'brightness(1.2)' }}
+                  whileTap={{ scale: 0.95 }}
+                  href={`https://suiscan.xyz/testnet/tx/${txDigest}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="btn btn-primary" 
+                  style={{ flex: 1, textDecoration: 'none', background: 'var(--success)', padding: '8rem', fontWeight: 950, fontSize: '4.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10rem', color: 'white', letterSpacing: '0.8rem', borderRadius: '80px', transition: 'all 0.6s', boxShadow: '0 100px 200px rgba(34, 197, 94, 0.7)' }}
+                >
+                  <Globe size={130} strokeWidth={2} />
+                  <span>AUDIT_LEDGER</span>
+                </motion.a>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      <footer style={{ textAlign: 'center', marginTop: '45rem', opacity: 0.2, paddingBottom: '45rem', borderTop: '1px dashed var(--border-light)', paddingTop: '35rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '30rem', marginBottom: '25rem' }}>
+          <Phone size={120} strokeWidth={0.5} />
+          <Database size={150} strokeWidth={0.5} />
+          <Layers size={120} strokeWidth={0.5} />
+          <Fingerprint size={120} strokeWidth={0.5} />
+          <Award size={120} strokeWidth={0.5} />
+          <Grid size={120} strokeWidth={0.5} />
+          <Shield size={150} strokeWidth={0.5} />
+          <Cpu size={150} strokeWidth={0.5} />
+          <Timer size={150} strokeWidth={0.5} />
+          <Clock size={120} strokeWidth={0.5} />
+          <Search size={120} strokeWidth={0.5} />
+          <Activity size={150} strokeWidth={0.5} />
+        </div>
+        <div style={{ fontWeight: 950, letterSpacing: '6rem', fontSize: '6rem', textTransform: 'uppercase' }}>RESERVE_ENGINE_v9.4.0_FINAL_STABLE_ORBIT</div>
+      </footer>
     </div>
   );
 };

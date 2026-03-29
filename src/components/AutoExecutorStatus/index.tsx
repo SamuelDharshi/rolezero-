@@ -1,5 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Activity, Zap, ZapOff, Bot, Timer, Shield, Cpu } from 'lucide-react';
 
 interface AutoExecutorStatusProps {
   isMonitoring?: boolean;
@@ -15,10 +16,10 @@ export const AutoExecutorStatus: React.FC<AutoExecutorStatusProps> = ({
   onToggle
 }) => {
   const isActive = isMonitoring && autoExecuteEnabled;
-  // Add countdown timer for next auto-payment
   const [countdown, setCountdown] = React.useState<number | null>(null);
+
   React.useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: any;
     if (isActive && typeof window !== 'undefined') {
       interval = setInterval(() => {
         setCountdown((prev) => {
@@ -35,36 +36,56 @@ export const AutoExecutorStatus: React.FC<AutoExecutorStatusProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="fixed top-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 z-50 cursor-pointer"
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      whileHover={{ scale: 1.02 }}
       onClick={onToggle}
-      whileHover={{ scale: 1.05 }}
+      className={`card fixed bottom-12 right-12 z-[2000] cursor-pointer overflow-hidden ${isActive ? 'card-glow' : ''}`}
+      style={{ padding: '2rem 3rem', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '25px', width: '380px' }}
     >
-      <div className="flex items-center gap-4">
-        <div className={`w-4 h-4 rounded-full ${isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
-        <div>
-          <div className="text-base font-bold flex items-center gap-2">
-            <span>Auto-Payment Bot</span>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: isActive ? 'var(--success)' : 'var(--text-dim)', opacity: 0.4 }} />
+      
+      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+        <div className={`card ${isActive ? 'pulse' : ''}`} style={{ width: '56px', height: '56px', borderRadius: '15px', background: isActive ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-main)', border: `1px solid ${isActive ? 'var(--success)' : 'var(--border-light)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: isActive ? 'var(--success)' : 'var(--text-dim)' }}>
+          {isActive ? <Bot size={28} /> : <ZapOff size={28} />}
+        </div>
+        
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.4rem' }}>
+            <span style={{ fontSize: '1rem', fontWeight: 950, letterSpacing: '0.05em' }}>BOT: EXECUTOR</span>
             {readyCount > 0 && isActive && (
-              <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
-                {readyCount} ready
+              <span style={{ background: 'var(--success)', color: 'white', fontSize: '0.65rem', fontWeight: 950, padding: '0.2rem 0.6rem', borderRadius: '100px', letterSpacing: '0.05em' }}>
+                {readyCount} READY
               </span>
             )}
           </div>
-          <div className="text-xs text-gray-700 dark:text-gray-300 mt-1">
-            {isActive ? '✅ Auto-payment is running' : isMonitoring ? '⏸️ Bot paused' : '❌ Bot inactive'}
+          
+          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: isActive ? 'var(--success)' : 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <div className={isActive ? 'pulse' : ''} style={{ width: '6px', height: '6px', borderRadius: '50%', background: isActive ? 'var(--success)' : 'var(--text-dim)' }} />
+            {isActive ? 'KERNEL_ACTIVE_MONITORING' : isMonitoring ? 'EXECUTOR_PAUSED_NOMINAL' : 'KERNEL_OFFLINE_VOID'}
           </div>
-          {isActive && countdown !== null && (
-            <div className="text-xs text-green-600 dark:text-green-400 mt-1">
-              Next auto-payment in <b>{countdown}s</b>
-            </div>
-          )}
-          {onToggle && (
-            <div className="text-xs text-blue-500 mt-2">
-              Click to {autoExecuteEnabled ? 'disable' : 'enable'} auto-payment
-            </div>
-          )}
+
+          <AnimatePresence>
+            {isActive && countdown !== null && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }} 
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                style={{ fontSize: '0.7rem', color: 'var(--sui-blue)', fontWeight: 950, marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.6rem', letterSpacing: '0.05em' }}
+              >
+                <Timer size={14} /> NEXT_CYCLE: {countdown}S
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+      
+      <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px dashed var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-dim)', fontSize: '0.65rem', fontWeight: 950 }}>
+          <Shield size={12} /> SECURE_LEDGER_SYNC
+        </div>
+        <div style={{ fontSize: '0.65rem', fontWeight: 950, color: 'var(--sui-blue)' }}>
+           {isActive ? 'CLICK_TO_ABORT' : 'CLICK_TO_ENGAGE'}
         </div>
       </div>
     </motion.div>

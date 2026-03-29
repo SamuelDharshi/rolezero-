@@ -1,0 +1,87 @@
+/* ==================== DIAGNOSTIC TOOL CYBER-LUXE STYLES ==================== */
+
+.diagnostic-page {
+  background: var(--bg-main);
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ==================== AUDIT CARDS ==================== */
+
+.audit-unit-card {
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.audit-unit-card:hover {
+  transform: translateY(-25px);
+  border-color: var(--sui-blue) !important;
+}
+
+.audit-unit-card:nth-child(2):hover {
+  border-color: var(--success) !important;
+}
+
+/* ==================== CONSOLE MANIFOLD ==================== */
+
+.audit-console-manifold {
+  animation: console-entrance 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes console-entrance {
+  from { opacity: 0; transform: translateY(100px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cursor-indicator {
+  animation: cursor-pulse 0.8s infinite;
+}
+
+@keyframes cursor-pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.1; }
+  100% { opacity: 1; }
+}
+
+/* ==================== STATUS VISUALS ==================== */
+
+.status-visual {
+  transition: all 0.5s ease-out;
+}
+
+.status-visual:hover {
+  transform: scale(1.1) rotate(5deg);
+  border-color: currentColor !important;
+  box-shadow: 0 0 80px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ==================== RESPONSIVENESS ==================== */
+
+@media (max-width: 1600px) {
+  .diagnostic-header-manifold h1 { font-size: 12rem !important; }
+  .audit-card-manifold { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 1200px) {
+  .hero-badge { font-size: 1.1rem !important; }
+  .diagnostic-header-manifold h1 { font-size: 10rem !important; }
+  .manifold-subtitle { font-size: 3rem !important; }
+  .diagnostic-manifold { padding: 12rem 8rem !important; border-radius: 80px !important; }
+  .audit-unit-card { padding: 10rem 6rem !important; border-radius: 60px !important; }
+  .t-val { font-size: 4rem !important; }
+}
+
+@media (max-width: 900px) {
+  .diagnostic-header-manifold h1 { font-size: 8rem !important; }
+  .header-status-icons-unit { gap: 5rem !important; }
+  .status-visual { padding: 4rem !important; }
+}
+
+@media (max-width: 600px) {
+  .diagnostic-header-manifold h1 { font-size: 6rem !important; }
+  .manifold-subtitle { font-size: 2.25rem !important; }
+  .audit-line-manifold { font-size: 2rem !important; gap: 4rem !important; }
+  .btn-audit-manifold { font-size: 2.5rem !important; padding: 5rem !important; }
+  .audit-console-manifold { padding: 8rem 6rem !important; }
+  .tty-badge-cell { display: none !important; }
+}

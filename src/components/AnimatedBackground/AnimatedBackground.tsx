@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import './AnimatedBackground.css';
 
 /**
- * Animated gradient background with smooth transitions
- * Lightweight alternative to heavy 3D animations
+ * Cyber-Luxe Neural Mesh Background
+ * High-performance canvas-based dynamic background with deep blacks, neon accents, and structural grid
  */
 export const AnimatedBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -15,16 +15,17 @@ export const AnimatedBackground: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      canvas.width = window.innerWidth * window.devicePixelRatio;
+      canvas.height = window.innerHeight * window.devicePixelRatio;
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     };
     resize();
     window.addEventListener('resize', resize);
 
     // Animation parameters
-    let time = 0;
     const particles: Array<{
       x: number;
       y: number;
@@ -32,77 +33,104 @@ export const AnimatedBackground: React.FC = () => {
       vy: number;
       radius: number;
       color: string;
+      alpha: number;
     }> = [];
 
-    // Create particles with ENS colors
+    // Premium Cyber-Luxe Colors
     const colors = [
-      'rgba(56, 136, 255, 0.15)',   // ENS primary blue
-      'rgba(91, 163, 255, 0.1)',     // Light blue
-      'rgba(26, 156, 123, 0.1)',     // Teal/green
-      'rgba(147, 197, 253, 0.08)'    // Very light blue
+      '6, 182, 212',   // Sui Blue
+      '139, 92, 246',   // Purple
+      '34, 197, 94',   // Success Green
+      '2, 132, 199',   // Deep Blue
     ];
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 45; i++) {
       particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        radius: Math.random() * 150 + 50,
-        color: colors[Math.floor(Math.random() * colors.length)]
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        radius: Math.random() * 450 + 150,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        alpha: Math.random() * 0.12 + 0.03
       });
     }
 
-    // Animation loop
     const animate = () => {
-      time += 0.001;
+      if (!canvas || !ctx) return;
 
-      // Create gradient background
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, '#F8FAFC');
-      gradient.addColorStop(0.5, '#F1F5F9');
-      gradient.addColorStop(1, '#E2E8F0');
+      // Deepest black base
+      ctx.fillStyle = '#050505';
+      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Update and draw particles
-      particles.forEach((particle) => {
-        // Update position
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-
-        // Bounce off edges
-        if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
-        if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
-
-        // Draw particle
-        const gradient = ctx.createRadialGradient(
-          particle.x,
-          particle.y,
-          0,
-          particle.x,
-          particle.y,
-          particle.radius
-        );
-        gradient.addColorStop(0, particle.color);
-        gradient.addColorStop(1, 'rgba(248, 250, 252, 0)');
-
-        ctx.fillStyle = gradient;
+      // Draw Structural Neural Grid (Subtle)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.015)';
+      ctx.lineWidth = 0.5;
+      const gridSize = 120;
+      
+      for (let x = 0; x < window.innerWidth; x += gridSize) {
         ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, window.innerHeight);
+        ctx.stroke();
+      }
+      for (let y = 0; y < window.innerHeight; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(window.innerWidth, y);
+        ctx.stroke();
+      }
+
+      // High-performance particle rendering
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < -p.radius) p.x = window.innerWidth + p.radius;
+        if (p.x > window.innerWidth + p.radius) p.x = -p.radius;
+        if (p.y < -p.radius) p.y = window.innerHeight + p.radius;
+        if (p.y > window.innerHeight + p.radius) p.y = -p.radius;
+
+        const garden = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+        garden.addColorStop(0, `rgba(${p.color}, ${p.alpha})`);
+        garden.addColorStop(1, 'rgba(5, 5, 5, 0)');
+
+        ctx.fillStyle = garden;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fill();
       });
+
+      // Atmospheric Vignette & Top Glow
+      const vignette = ctx.createRadialGradient(
+        window.innerWidth / 2, 
+        window.innerHeight / 2, 
+        0, 
+        window.innerWidth / 2, 
+        window.innerHeight / 2, 
+        window.innerWidth
+      );
+      vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      vignette.addColorStop(1, 'rgba(0, 0, 0, 0.6)');
+      ctx.fillStyle = vignette;
+      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+      const topReflect = ctx.createLinearGradient(0, 0, 0, 400);
+      topReflect.addColorStop(0, 'rgba(6, 182, 212, 0.06)');
+      topReflect.addColorStop(1, 'rgba(5, 5, 5, 0)');
+      ctx.fillStyle = topReflect;
+      ctx.fillRect(0, 0, window.innerWidth, 400);
 
       requestAnimationFrame(animate);
     };
 
-    animate();
+    const requestId = requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener('resize', resize);
+      cancelAnimationFrame(requestId);
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="animated-background" />;
+  return <canvas ref={canvasRef} className="animated-background" style={{ opacity: 1 }} />;
 };
