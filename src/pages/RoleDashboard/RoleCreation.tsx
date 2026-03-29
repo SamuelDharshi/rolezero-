@@ -5,22 +5,23 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Zap, 
-  Plus, 
-  Trash2, 
-  Calendar, 
-  Wallet, 
-  Settings, 
-  Cpu, 
-  Activity, 
+  TrendingUp, 
+  ArrowRight,
+  History,
+  Plus,
+  Trash2,
+  Calendar,
+  Wallet,
+  Settings,
+  Cpu,
+  Activity,
   Terminal,
   Layers,
   Fingerprint,
   Loader2,
   Clock,
   ShieldCheck,
-  ArrowUpRight,
-  TrendingUp,
-  ArrowRight
+  ArrowUpRight
 } from 'lucide-react';
 import { showToast } from '@/components/Toast/Toast';
 import './RoleDashboard.css';
@@ -29,7 +30,7 @@ const PACKAGE_ID = '0x0067cc0149eabee42d24049acabd450486977295fac652f71dd5b2f4f6
 
 export const RoleCreation: React.FC = () => {
   const currentAccount = useCurrentAccount();
-  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const { mutate: signTransaction } = useSignAndExecuteTransaction();
   const navigate = useNavigate();
   
   const [roleName, setRoleName] = useState('');
@@ -117,6 +118,7 @@ export const RoleCreation: React.FC = () => {
       const leftoverAddr = leftoverRecipient || currentAccount.address;
 
       const txb = new Transaction();
+      txb.setGasBudget(200_000_000); // 0.2 SUI for creation
 
       txb.moveCall({
         target: `${PACKAGE_ID}::role::create_role`,
@@ -132,7 +134,7 @@ export const RoleCreation: React.FC = () => {
         ],
       });
 
-      signAndExecuteTransaction({
+      signTransaction({
         transaction: txb,
       }, {
         onSuccess: (result) => {

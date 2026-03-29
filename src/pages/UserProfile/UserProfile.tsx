@@ -23,7 +23,8 @@ import {
   Wallet,
   Search,
   Terminal,
-  Hash
+  Hash,
+  ArrowRight
 } from 'lucide-react';
 import './UserProfile.css';
 
@@ -193,7 +194,7 @@ export const UserProfile: React.FC = () => {
 
                     <div className="manifest-list flex-column gap-12">
                       {filteredTransactions.map((tx, idx) => (
-                        <div key={tx.id} className="tx-item card-dim flex-between p-20 clickable">
+                        <div key={idx} className="tx-item card-dim flex-between p-20 clickable">
                           <div className="flex-center gap-20">
                             <div className={`icon-circle ${tx.type === 'funding' ? 'bg-success-dim text-success' : 'bg-primary-dim text-primary'}`}>
                               {tx.type === 'funding' ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}

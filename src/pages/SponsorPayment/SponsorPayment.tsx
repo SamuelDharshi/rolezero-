@@ -24,7 +24,8 @@ import {
   TrendingUp, 
   Wallet, 
   Zap, 
-  ZapOff 
+  ZapOff,
+  History
 } from 'lucide-react';
 import './SponsorPayment.css';
 
@@ -33,7 +34,7 @@ export const SponsorPayment: React.FC = () => {
   const navigate = useNavigate();
   const account = useCurrentAccount();
   const { data: roleData, isLoading, error } = useRoleData(roleId);
-  const fundRole = useFundRole(roleId || '');
+  const { fundRole: callFundRole } = useFundRole();
   const { sponsorships } = useSponsorTracking(roleId || '');
 
   const [amount, setAmount] = useState('1');
@@ -89,7 +90,7 @@ export const SponsorPayment: React.FC = () => {
 
     setIsProcessing(true);
     try {
-      const result = await fundRole.mutateAsync(value);
+      const result = await callFundRole(roleId || '', value * 1_000_000_000); // Convert to MIST
       setTxDigest(result.digest);
       setShowSuccess(true);
       showToast({ type: 'success', title: 'INJECTED', message: 'Liquidity injection synced with ledger.', txDigest: result.digest });
