@@ -50,19 +50,23 @@ export const ENSShowcase: React.FC = () => {
         {!address ? (
           <div className="flex-center" style={{ minHeight: '60vh' }}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="card flex-center flex-column text-center"
-              style={{ padding: '60px', maxWidth: '600px' }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card flex-center gap-32"
+              style={{ padding: '40px 50px', maxWidth: '900px', width: '100%' }}
             >
-              <div className="icon-circle flex-center mb-24" style={{ width: '80px', height: '80px', background: 'rgba(255,255,255,0.05)', borderRadius: '24px' }}>
-                <Wallet size={40} className="text-secondary" />
+              <div className="icon-circle bg-surface flex-center" style={{ width: '80px', height: '80px', borderRadius: '20px', flexShrink: 0 }}>
+                <Wallet size={36} className="text-secondary" />
               </div>
-              <h2>Authentication Required</h2>
-              <p className="text-secondary mb-32">
-                Please connect your EVM wallet to view your identity profile and payment preferences.
-              </p>
-              <button className="btn btn-primary">Connect Wallet</button>
+              <div className="flex-1">
+                <h2 className="m-0 text-xl font-bold">Authentication Required</h2>
+                <p className="text-secondary m-0 mt-8 leading-relaxed">
+                  Please connect your EVM wallet to view your identity profile and payment preferences.
+                </p>
+              </div>
+              <button className="btn btn-primary px-32 py-16 font-bold whitespace-nowrap" style={{ minWidth: '180px' }}>
+                Connect Wallet
+              </button>
             </motion.div>
           </div>
         ) : (
