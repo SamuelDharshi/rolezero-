@@ -1,92 +1,70 @@
-/* ==================== ROLE DASHBOARD LIVE CYBER-LUXE STYLES ==================== */
-
-.dashboard-live-page {
-  background: var(--bg-main);
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
+.dashboard-header {
+  margin-bottom: 40px;
 }
 
-/* ==================== STATUS BADGES ==================== */
-
-.status-badge-manifold {
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+.status-pill {
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.status-badge-manifold.active { border-color: var(--success) !important; background: rgba(34, 197, 94, 0.1) !important; color: var(--success) !important; }
-.status-badge-manifold.expired { border-color: var(--error) !important; background: rgba(239, 68, 68, 0.1) !important; color: var(--error) !important; }
-.status-badge-manifold.pending { border-color: var(--sui-blue) !important; background: rgba(6, 182, 212, 0.1) !important; color: var(--sui-blue) !important; }
+.status-pill.active { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+.status-pill.pending { background: rgba(6, 182, 212, 0.1); color: var(--sui-blue); }
+.status-pill.expired { background: rgba(239, 68, 68, 0.1); color: var(--error); }
 
-/* ==================== STAT CARDS ==================== */
-
-.tele-stat-card {
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+.status-pill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
 }
 
-.tele-stat-card:hover {
-  transform: translateY(-20px) scale(1.02);
+.status-pill.active::before { background: var(--success); }
+.status-pill.pending::before { background: var(--sui-blue); }
+.status-pill.expired::before { background: var(--error); }
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
 }
 
-.tele-stat-card:hover .stat-icon-unit {
-  transform: rotate(5deg) scale(1.1);
-  border-color: inherit !important;
-  box-shadow: 0 0 80px rgba(255, 255, 255, 0.1) !important;
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 32px;
 }
 
-/* ==================== TRANSACTION SHARDS ==================== */
-
-.kernel-tx-shard {
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
+  animation: pulse 1.5s infinite;
 }
 
-.kernel-tx-shard:hover {
-  border-color: var(--sui-blue) !important;
-  transform: translateX(30px);
-  background: rgba(6, 182, 212, 0.08) !important;
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
-.kernel-tx-shard.funding:hover { border-color: var(--success) !important; background: rgba(34, 197, 94, 0.08) !important; }
-
-/* ==================== TEMPORAL ANCHOR ==================== */
-
-.current-temporal-anchor {
-  animation: anchor-pulse 4s infinite alternate;
+@media (max-width: 1024px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .dashboard-grid { grid-template-columns: 1fr; }
 }
 
-@keyframes anchor-pulse {
-  from { box-shadow: inset 0 0 60px rgba(0,0,0,0.8); }
-  to { box-shadow: inset 0 0 100px rgba(6, 182, 212, 0.15); }
-}
-
-/* ==================== RESPONSIVENESS ==================== */
-
-@media (max-width: 1600px) {
-  .dashboard-header-manifold { flex-direction: column; align-items: flex-start !important; gap: 10rem; }
-  .header-actions { width: 100% !important; justify-content: space-between !important; }
-  .telemetry-stats-manifold { grid-template-columns: 1fr 1fr !important; }
-  .dashboard-operational-grid { grid-template-columns: 1fr !important; }
-}
-
-@media (max-width: 1200px) {
-  .hero-badge { font-size: 1rem !important; }
-  .dashboard-header-manifold h1 { font-size: 10rem !important; }
-  .status-badge-manifold span { font-size: 1.5rem !important; }
-  .btn-primary { font-size: 2.25rem !important; padding: 4rem 6rem !important; }
-  .tele-stat-card { padding: 10rem 6rem !important; border-radius: 80px !important; }
-  .stat-value { font-size: 8rem !important; }
-  .kernel-tx-shard { grid-template-columns: 1fr !important; gap: 8rem !important; padding: 10rem 6rem !important; }
-  .tx-telemetry-meta { text-align: center !important; }
-  .tx-addresses { justify-content: center !important; flex-direction: column !important; }
-}
-
-@media (max-width: 900px) {
-  .dashboard-header-manifold h1 { font-size: 8rem !important; }
-  .telemetry-stats-manifold { grid-template-columns: 1fr !important; }
-  .success-container h2 { font-size: 10rem !important; }
-}
-
-@media (max-width: 600px) {
-  .dashboard-header-manifold h1 { font-size: 6rem !important; }
-  .btn-primary span { display: none !important; }
-  .btn-primary { width: fit-content !important; padding: 5rem !important; }
+@media (max-width: 768px) {
+  .stats-row { grid-template-columns: 1fr; }
+  .dashboard-header { flex-direction: column; align-items: flex-start; gap: 24px; }
+  .tx-item { flex-direction: column; align-items: flex-start; gap: 24px; }
+  .tx-item .text-right { text-align: left; }
 }

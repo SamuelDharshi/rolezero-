@@ -1,108 +1,83 @@
-/* ==================== SPONSOR PAYMENT CYBER-LUXE STYLES ==================== */
+.sponsor-header {
+  margin-bottom: 40px;
+}
 
-.sponsor-page, .sponsor-payment-page {
+.injection-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 32px;
+}
+
+.amount-input {
   background: var(--bg-main);
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
 }
 
-/* ==================== HERO MANIFOLDS ==================== */
-
-.tracking-hero-manifold, .sponsor-header-manifold {
-  animation: manifold-entrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.amount-input input:focus {
+  color: var(--sui-blue);
 }
 
-@keyframes manifold-entrance {
-  from { opacity: 0; transform: translateY(-50px); }
-  to { opacity: 1; transform: translateY(0); }
+.telemetry-compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 
-/* ==================== TELEMETRY CARDS ==================== */
-
-.telemetry-unit-card, .tele-unit-card {
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+.tele-unit {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
 }
 
-.telemetry-unit-card:hover .telemetry-icon-cell,
-.tele-unit-card:hover .card:first-child {
-  transform: rotate(10deg) scale(1.1);
-  box-shadow: 0 0 100px currentColor !important;
+.badge-live {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--success);
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-/* ==================== INPUT MANIFOLDS ==================== */
-
-.amount-input-manifold input::-webkit-outer-spin-button,
-.amount-input-manifold input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.badge-live::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 1.5s infinite;
 }
 
-.amount-input-manifold input[type=number] {
-  -moz-appearance: textfield;
+.tele-item {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
 }
 
-/* ==================== MANIFEST ITEMS ==================== */
-
-.manifest-item-shard {
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
 }
 
-.manifest-item-shard:hover .shard-type-visual {
-  transform: rotate(-5deg) scale(1.05);
-  border-color: var(--sui-blue) !important;
-  box-shadow: 0 0 80px rgba(6, 182, 212, 0.3) !important;
+.modal-content {
+  background: var(--bg-card);
+  border: 1px solid var(--success);
+  box-shadow: 0 0 100px rgba(34, 197, 94, 0.2);
 }
 
-/* ==================== SUCCESS OVERLAY ==================== */
-
-.success-overlay-manifold {
-  animation: overlay-fade 0.8s ease-in-out forwards;
+@media (max-width: 1024px) {
+  .injection-layout { grid-template-columns: 1fr; }
+  .grid-sidebar { position: static; width: 100%; }
 }
 
-@keyframes overlay-fade {
-  from { opacity: 0; backdrop-filter: blur(0); }
-  to { opacity: 1; backdrop-filter: blur(150px); }
-}
-
-.success-icon-visual svg {
-  animation: success-pulse 2s infinite alternate ease-in-out;
-}
-
-@keyframes success-pulse {
-  from { transform: scale(1); filter: drop-shadow(0 0 20px var(--success)); }
-  to { transform: scale(1.1); filter: drop-shadow(0 0 50px var(--success)); }
-}
-
-/* ==================== RESPONSIVENESS ==================== */
-
-@media (max-width: 1600px) {
-  .tracking-hero-manifold h1, .sponsor-header-manifold h1 { font-size: 11rem !important; }
-  .manifold-subtitle { font-size: 3.5rem !important; }
-  .tracking-telemetry-grid-manifold { grid-template-columns: repeat(2, 1fr) !important; }
-  .injection-manifold-layout { grid-template-columns: 1fr !important; }
-}
-
-@media (max-width: 1200px) {
-  .header-icon-visual { width: 280px !important; height: 280px !important; }
-  .tracking-telemetry-grid-manifold { grid-template-columns: 1fr !important; }
-  .manifest-item-shard { grid-template-columns: 1fr 1fr 1fr !important; gap: 8rem; }
-  .shard-action-cell { grid-column: 1 / -1; justify-self: center; width: 100%; margin-top: 5rem; }
-  .amount-input-manifold input { font-size: 15rem !important; }
-}
-
-@media (max-width: 900px) {
-  .tracking-hero-manifold h1, .sponsor-header-manifold h1 { font-size: 8rem !important; }
-  .manifold-subtitle { font-size: 2.5rem !important; }
-  .manifest-item-shard { grid-template-columns: 1fr !important; text-align: center; }
-  .shard-ident-title { font-size: 4rem !important; }
-  .shard-value-node { font-size: 6rem !important; }
-}
-
-@media (max-width: 600px) {
-  .tracking-hero-manifold h1, .sponsor-header-manifold h1 { font-size: 5rem !important; }
-  .manifold-subtitle { font-size: 2rem !important; }
-  .telemetry-unit-card, .tele-unit-card { padding: 8rem 6rem !important; }
-  .amount-input-manifold input { font-size: 10rem !important; }
-  .btn-primary { font-size: 3.5rem !important; padding: 6rem !important; }
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
 }
